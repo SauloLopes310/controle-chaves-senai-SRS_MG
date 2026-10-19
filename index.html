@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Chaves Online - SENAI SRS</title>
+
+    <!-- Importando o Firebase SDK (Versão Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary: #005691;
@@ -66,7 +71,6 @@
             padding-bottom: 5px;
         }
 
-        /* Grid de Salas/Labs */
         .chaves-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -119,7 +123,6 @@
             color: #64748b;
         }
 
-        /* Painéis de Administração / Cadastros */
         .painel-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -160,7 +163,6 @@
             background-color: var(--primary-dark);
         }
 
-        /* Histórico */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -179,7 +181,6 @@
             color: #475569;
         }
 
-        /* Modal Simples */
         .modal {
             display: none;
             position: fixed;
@@ -222,25 +223,22 @@
 
     <div class="container">
         <div class="section-title">Status dos Ambientes e Chaves (Clique para Retirar/Devolver)</div>
-        <div id="grid-chaves" class="chaves-grid">
-            <!-- Gerado via JavaScript -->
-        </div>
+        <div id="grid-chaves" class="chaves-grid"></div>
 
         <div class="painel-container">
-            <!-- Cadastro de Novo Ambiente -->
             <div class="painel-admin">
                 <strong>➕ Incluir Novo Ambiente</strong>
-                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre uma nova sala ou laboratório no sistema.</p>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre uma nova sala ou laboratório.</p>
                 <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
                 <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
             </div>
 
-            <!-- Cadastro de Novo Usuário -->
             <div class="painel-admin">
-                <strong>👤 Incluir Novo Responsável</strong>
-                <p style="margin: 0; font-size: 12px; color: #64748b;">Adicione um novo docente ou colaborador à lista.</p>
-                <input type="text" id="novo-usuario" placeholder="Ex: Colaborador. Carlos Felipe">
-                <button class="btn" onclick="adicionarUsuario()">Adicionar Responsável</button>
+                <strong>👤 Incluir Novo Responsável & Senha</strong>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre o docente e defina uma senha de acesso.</p>
+                <input type="text" id="novo-usuario" placeholder="Nome do Professor...">
+                <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
+                <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
             </div>
         </div>
 
@@ -255,30 +253,40 @@
                         <th>Data / Hora</th>
                     </tr>
                 </thead>
-                <tbody id="tabela-historico">
-                    <!-- Gerado via JavaScript -->
-                </tbody>
+                <tbody id="tabela-historico"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Modal de Retirada/Devolução -->
+    <!-- Modal de Interação -->
     <div id="modal-acao" class="modal">
         <div class="modal-content">
             <h3 id="modal-titulo">Gerenciar Chave</h3>
             <p id="modal-info" style="font-size: 13px; color: #64748b;"></p>
             
-            <div id="bloco-retirada">
-                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável:</label>
-                <select id="select-responsavel"></select>
-                <button class="btn" style="width: 100%; margin-top: 10px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
+            <!-- Bloco para Retirada -->
+            <div id="bloco-retirada" style="display: none;">
+                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável (Retirada):</label>
+                <select id="select-responsavel-retirada"></select>
+                
+                <label style="font-size: 12px; font-weight: bold;">Digite sua Senha / PIN:</label>
+                <input type="password" id="input-senha-retirada" placeholder="Sua senha pessoal">
+                
+                <button class="btn" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
             </div>
 
+            <!-- Bloco para Devolução -->
             <div id="bloco-devolucao" style="display: none;">
-                <button class="btn" style="width: 100%; background-color: var(--success);" onclick="confirmarDevolucao()">Confirmar Devolução</button>
+                <label style="font-size: 12px; font-weight: bold;">Responsável pela Devolução:</label>
+                <input type="text" id="resp-devolucao-fixo" readonly style="background: #e2e8f0; font-weight: bold; cursor: not-allowed;">
+                
+                <label style="font-size: 12px; font-weight: bold;">Digite a Senha do Responsável:</label>
+                <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal do docente">
+                
+                <button class="btn" style="width: 100%; background-color: var(--success); margin-top: 5px;" onclick="confirmarDevolucao()">Confirmar Devolução</button>
             </div>
 
-            <button class="btn" style="width: 100%; background-color: #64748b; margin-top: 8px;" onclick="fecharModal()">Cancelar</button>
+            <button class="btn" style="width: 100%; background-color: #64748b; margin-top: 10px;" onclick="fecharModal()">Cancelar</button>
         </div>
     </div>
 
@@ -287,26 +295,81 @@
     </footer>
 
     <script>
-        let usuarios = [
-            "Andreia", "Leandro", "João", "Danilo", "Roniam", 
-            "Ramona", "Jackson", "Alberto", "Luiz", "Felipe", "Saulo", "Gil"
-        ];
+        // ================= CONFIGURAÇÃO DO FIREBASE =================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg9vM1RnmPJhIi80E_KE_R_Z-G7myhtds",
+            authDomain: "controle-chaves-srs.firebaseapp.com",
+            databaseURL: "https://controle-chaves-srs-default-rtdb.firebaseio.com",
+            projectId: "controle-chaves-srs",
+            storageBucket: "controle-chaves-srs.firebasestorage.app",
+            messagingSenderId: "90439057986",
+            appId: "1:90439057986:web:540222b0a7a7f639b423db",
+            measurementId: "G-Y0BGXCFQ5D"
+        };
 
-        let ambientes = [
-            { id: 'lab40', nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'mecanica', nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'automacao', nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'informatica', nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'eletronica', nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'eletrica_ind', nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 's301_302', nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'sala201', nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'sala302', nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '' },
-            { id: 'sala303', nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
-        ];
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        // ============================================================
 
+        let usuarios = [];
+        let ambientes = [];
         let historico = [];
         let ambienteAtualId = null;
+
+        // Ouvintes em tempo real do Firebase (Sincroniza automaticamente)
+        db.ref('usuarios').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                usuarios = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            } else {
+                inicializarBancoPadrao();
+            }
+            renderizar();
+        });
+
+        db.ref('ambientes').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                ambientes = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            }
+            renderizar();
+        });
+
+        db.ref('historico').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                historico = Object.keys(data).map(key => data[key]).reverse();
+            } else {
+                historico = [];
+            }
+            renderizar();
+        });
+
+        function inicializarBancoPadrao() {
+            const usuariosIniciais = [
+                { nome: "Andreia", senha: "123" }, { nome: "Leandro", senha: "123" },
+                { nome: "João", senha: "123" }, { nome: "Danilo", senha: "123" },
+                { nome: "Roniam", senha: "123" }, { nome: "Ramona", senha: "123" },
+                { nome: "Jackson", senha: "123" }, { nome: "Alberto", senha: "123" },
+                { nome: "Luiz", senha: "123" }, { nome: "Felipe", senha: "123" },
+                { nome: "Saulo", senha: "123" }, { nome: "Gil", senha: "123" }
+            ];
+            usuariosIniciais.forEach(u => db.ref('usuarios').push(u));
+
+            const ambientesIniciais = [
+                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
+            ];
+            ambientesIniciais.forEach(a => db.ref('ambientes').push(a));
+        }
 
         function renderizar() {
             const grid = document.getElementById('grid-chaves');
@@ -333,21 +396,12 @@
                 grid.appendChild(card);
             });
 
-            // Atualizar Select de Responsáveis no Modal
-            const select = document.getElementById('select-responsavel');
-            select.innerHTML = '';
-            usuarios.sort().forEach(user => {
-                const opt = document.createElement('option');
-                opt.value = user;
-                opt.textContent = user;
-                select.appendChild(opt);
-            });
+            popularSelects();
 
-            // Atualizar Tabela de Histórico
             const tbody = document.getElementById('tabela-historico');
             tbody.innerHTML = '';
             if (historico.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada hoje.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada.</td></tr>`;
             } else {
                 historico.forEach(h => {
                     tbody.innerHTML += `
@@ -362,6 +416,17 @@
             }
         }
 
+        function popularSelects() {
+            const select = document.getElementById('select-responsavel-retirada');
+            select.innerHTML = '';
+            usuarios.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user.nome;
+                opt.textContent = user.nome;
+                select.appendChild(opt);
+            });
+        }
+
         function abrirModal(id) {
             ambienteAtualId = id;
             const amb = ambientes.find(a => a.id === id);
@@ -371,14 +436,19 @@
             const blocoDevolucao = document.getElementById('bloco-devolucao');
             const info = document.getElementById('modal-info');
 
+            document.getElementById('input-senha-retirada').value = '';
+            document.getElementById('input-senha-devolucao').value = '';
+
             if (amb.status === 'disponivel') {
-                info.textContent = "Esta chave está disponível na portaria.";
+                info.textContent = "Selecione o seu nome e digite a sua senha para retirar a chave.";
                 blocoRetirada.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
             } else {
-                info.textContent = `Retirada por ${amb.responsavel} às ${amb.hora}. Deseja registrar a devolução?`;
+                info.textContent = `Esta chave está em uso por ${amb.responsavel}. Digite a senha dele(a) para confirmar a devolução:`;
                 blocoRetirada.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
+                
+                document.getElementById('resp-devolucao-fixo').value = amb.responsavel;
             }
 
             document.getElementById('modal-acao').style.display = 'flex';
@@ -389,79 +459,106 @@
         }
 
         function confirmarRetirada() {
-            const responsavel = document.getElementById('select-responsavel').value;
+            const nomeSelecionado = document.getElementById('select-responsavel-retirada').value;
+            const senhaDigitada = document.getElementById('input-senha-retirada').value.trim();
+
+            const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
+
+            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                alert('Senha incorreta! Verifique a senha cadastrada para este usuário.');
+                return;
+            }
+
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
 
-            amb.status = 'ocupada';
-            amb.responsavel = responsavel;
-            amb.hora = agora;
+            // Atualiza na nuvem
+            db.ref('ambientes/' + amb.id).update({
+                status: 'ocupada',
+                responsavel: nomeSelecionado,
+                hora: agora
+            });
 
-            historico.unshift({
+            db.ref('historico').push({
                 ambiente: amb.nome,
-                responsavel: responsavel,
+                responsavel: nomeSelecionado,
                 tipo: 'Retirada',
                 dataHora: dataCompleta
             });
 
             fecharModal();
-            renderizar();
         }
 
         function confirmarDevolucao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
+            const responsavelAtual = amb.responsavel;
+            const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
+
+            const usuarioEncontrado = usuarios.find(u => u.nome === responsavelAtual);
+
+            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                alert('Senha incorreta! A devolução deve ser autenticada com a senha do docente responsável pela chave.');
+                return;
+            }
+
             const dataCompleta = new Date().toLocaleString();
 
-            historico.unshift({
+            db.ref('ambientes/' + amb.id).update({
+                status: 'disponivel',
+                responsavel: '',
+                hora: ''
+            });
+
+            db.ref('historico').push({
                 ambiente: amb.nome,
-                responsavel: amb.responsavel,
+                responsavel: responsavelAtual,
                 tipo: 'Devolução',
                 dataHora: dataCompleta
             });
 
-            amb.status = 'disponivel';
-            amb.responsavel = '';
-            amb.hora = '';
-
             fecharModal();
-            renderizar();
         }
 
         function adicionarAmbiente() {
             const input = document.getElementById('novo-ambiente');
             const nome = input.value.trim();
             if (nome) {
-                const idGerado = 'amb_' + Date.now();
-                ambientes.push({
-                    id: idGerado,
+                db.ref('ambientes').push({
                     nome: nome,
                     status: 'disponivel',
                     responsavel: '',
                     hora: ''
                 });
                 input.value = '';
-                renderizar();
-                alert(`Ambiente "${nome}" cadastrado com sucesso!`);
+                alert(`Ambiente "${nome}" cadastrado com sucesso na nuvem!`);
             } else {
                 alert('Digite o nome do ambiente.');
             }
         }
 
         function adicionarUsuario() {
-            const input = document.getElementById('novo-usuario');
-            const nome = input.value.trim();
-            if (nome && !usuarios.includes(nome)) {
-                usuarios.push(nome);
-                input.value = '';
-                renderizar();
-                alert(`Responsável "${nome}" cadastrado com sucesso!`);
+            const inputNome = document.getElementById('novo-usuario');
+            const inputSenha = document.getElementById('nova-senha');
+            const nome = inputNome.value.trim();
+            const senha = inputSenha.value.trim();
+
+            if (nome && senha) {
+                if (usuarios.some(u => u.nome.toLowerCase() === nome.toLowerCase())) {
+                    alert('Este usuário já está cadastrado.');
+                    return;
+                }
+                db.ref('usuarios').push({
+                    nome: nome,
+                    senha: senha
+                });
+                inputNome.value = '';
+                inputSenha.value = '';
+                alert(`Responsável "${nome}" cadastrado com sucesso na nuvem!`);
             } else {
-                alert('Digite um nome válido ou que ainda não esteja na lista.');
+                alert('Preencha o nome e a senha do novo responsável.');
             }
         }
-
-        window.onload = renderizar;
     </script>
 </body>
 </html>
