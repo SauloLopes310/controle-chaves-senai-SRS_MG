@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Chaves Online - SENAI SRS</title>
 
-    <!-- Importando o Firebase SDK (Versão Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -34,20 +33,28 @@
             background-color: var(--primary);
             color: white;
             padding: 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 24px;
+        header .logo-area h1 { margin: 0; font-size: 22px; }
+        header .logo-area p { margin: 3px 0 0 0; font-size: 12px; opacity: 0.9; }
+
+        .btn-admin-toggle {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
         }
 
-        header p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            opacity: 0.9;
-        }
+        .btn-admin-toggle:hover { background-color: rgba(255, 255, 255, 0.25); }
 
         .container {
             max-width: 1200px;
@@ -66,7 +73,7 @@
             color: #64748b;
             letter-spacing: 1px;
             margin-bottom: 12px;
-            margin-top: 20px;
+            margin-top: 10px;
             border-bottom: 2px solid #edf2f7;
             padding-bottom: 5px;
         }
@@ -93,50 +100,54 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.08);
         }
 
-        .chave-card.disponivel {
-            border-left: 6px solid var(--success);
-        }
+        .chave-card.disponivel { border-left: 6px solid var(--success); }
+        .chave-card.ocupada { border-left: 6px solid var(--danger); background: #fff5f5; }
 
-        .chave-card.ocupada {
-            border-left: 6px solid var(--danger);
-            background: #fff5f5;
-        }
-
-        .chave-nome {
-            font-weight: bold;
-            font-size: 15px;
-            color: #1e293b;
-            margin-bottom: 5px;
-        }
-
-        .chave-status {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
+        .chave-nome { font-weight: bold; font-size: 15px; color: #1e293b; margin-bottom: 5px; }
+        .chave-status { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
         .disponivel .chave-status { color: var(--success); }
         .ocupada .chave-status { color: var(--danger); }
+        .chave-detalhes { font-size: 12px; color: #64748b; }
 
-        .chave-detalhes {
-            font-size: 12px;
-            color: #64748b;
+        .sidebar {
+            position: fixed;
+            top: 0; right: -400px;
+            width: 350px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+            z-index: 1100;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
 
-        .painel-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
+        .sidebar.ativo { right: 0; }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
         }
+
+        .sidebar-header h3 { margin: 0; color: var(--primary); font-size: 18px; }
+        .btn-fechar-sidebar { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
 
         .painel-admin {
-            background: #f1f5f9;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 15px;
         }
 
         .painel-admin input {
@@ -158,28 +169,11 @@
             cursor: pointer;
             transition: background 0.2s;
         }
+        .btn:hover { background-color: var(--primary-dark); }
 
-        .btn:hover {
-            background-color: var(--primary-dark);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: #475569;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #475569; }
 
         .modal {
             display: none;
@@ -188,7 +182,7 @@
             background: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 1200;
         }
 
         .modal-content {
@@ -201,7 +195,7 @@
         }
 
         .modal-content h3 { margin-top: 0; color: var(--primary); }
-        .modal-content select, .modal-content input { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; }
+        .modal-content select, .modal-content input { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
 
         footer {
             background-color: #1e293b;
@@ -217,30 +211,16 @@
 <body>
 
     <header>
-        <h1>Controle Digital de Chaves</h1>
-        <p>SENAI - Santa Rita do Sapucaí / MG</p>
+        <div class="logo-area">
+            <h1>Controle Digital de Chaves</h1>
+            <p>SENAI - Santa Rita do Sapucaí / MG</p>
+        </div>
+        <button class="btn-admin-toggle" onclick="tentarAbrirAdmin()">⚙️ Gerenciar Cadastros</button>
     </header>
 
     <div class="container">
         <div class="section-title">Status dos Ambientes e Chaves (Clique para Retirar/Devolver)</div>
         <div id="grid-chaves" class="chaves-grid"></div>
-
-        <div class="painel-container">
-            <div class="painel-admin">
-                <strong>➕ Incluir Novo Ambiente</strong>
-                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre uma nova sala ou laboratório.</p>
-                <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
-                <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
-            </div>
-
-            <div class="painel-admin">
-                <strong>👤 Incluir Novo Responsável & Senha</strong>
-                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre o docente e defina uma senha de acesso.</p>
-                <input type="text" id="novo-usuario" placeholder="Nome do Professor...">
-                <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
-                <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
-            </div>
-        </div>
 
         <div class="section-title">Histórico de Movimentações Recentes</div>
         <div style="overflow-x: auto;">
@@ -258,30 +238,55 @@
         </div>
     </div>
 
-    <!-- Modal de Interação -->
+    <!-- Menu Lateral Retrátil de Cadastros -->
+    <div id="sidebar-admin" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Painel de Gestão</h3>
+            <button class="btn-fechar-sidebar" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div class="painel-admin">
+            <strong>➕ Novo Ambiente</strong>
+            <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
+            <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
+        </div>
+
+        <div class="painel-admin">
+            <strong>👤 Novo Responsável</strong>
+            <input type="text" id="novo-usuario" placeholder="Nome do Professor...">
+            <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
+            <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
+        </div>
+    </div>
+
+    <!-- Modal de Interação de Chaves -->
     <div id="modal-acao" class="modal">
         <div class="modal-content">
             <h3 id="modal-titulo">Gerenciar Chave</h3>
             <p id="modal-info" style="font-size: 13px; color: #64748b;"></p>
             
-            <!-- Bloco para Retirada -->
             <div id="bloco-retirada" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável (Retirada):</label>
+                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável:</label>
                 <select id="select-responsavel-retirada"></select>
                 
-                <label style="font-size: 12px; font-weight: bold;">Digite sua Senha / PIN:</label>
-                <input type="password" id="input-senha-retirada" placeholder="Sua senha pessoal">
+                <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
+                <input type="password" id="input-senha-retirada" placeholder="Senha do docente">
+                
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
+                <input type="text" id="input-token-retirada" placeholder="Ex: A9 (veja no display do quadro)" style="text-transform: uppercase;" maxlength="2">
                 
                 <button class="btn" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
             </div>
 
-            <!-- Bloco para Devolução -->
             <div id="bloco-devolucao" style="display: none;">
                 <label style="font-size: 12px; font-weight: bold;">Responsável pela Devolução:</label>
                 <input type="text" id="resp-devolucao-fixo" readonly style="background: #e2e8f0; font-weight: bold; cursor: not-allowed;">
                 
-                <label style="font-size: 12px; font-weight: bold;">Digite a Senha do Responsável:</label>
-                <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal do docente">
+                <label style="font-size: 12px; font-weight: bold;">Senha do Docente:</label>
+                <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
+                
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
+                <input type="text" id="input-token-devolucao" placeholder="Ex: A9 (veja no display do quadro)" style="text-transform: uppercase;" maxlength="2">
                 
                 <button class="btn" style="width: 100%; background-color: var(--success); margin-top: 5px;" onclick="confirmarDevolucao()">Confirmar Devolução</button>
             </div>
@@ -295,7 +300,6 @@
     </footer>
 
     <script>
-        // ================= CONFIGURAÇÃO DO FIREBASE =================
         const firebaseConfig = {
             apiKey: "AIzaSyDg9vM1RnmPJhIi80E_KE_R_Z-G7myhtds",
             authDomain: "controle-chaves-srs.firebaseapp.com",
@@ -309,14 +313,18 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        // ============================================================
 
         let usuarios = [];
         let ambientes = [];
         let historico = [];
         let ambienteAtualId = null;
+        let tokenGlobalDoBanco = "";
 
-        // Ouvintes em tempo real do Firebase (Sincroniza automaticamente)
+        // Ouve o token em tempo real do Firebase
+        db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
+            tokenGlobalDoBanco = snapshot.val() || "";
+        });
+
         db.ref('usuarios').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -369,6 +377,19 @@
                 { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
             ];
             ambientesIniciais.forEach(a => db.ref('ambientes').push(a));
+        }
+
+        function tentarAbrirAdmin() {
+            const senhaAdmin = prompt("Digite a senha de administrador para gerenciar cadastros:");
+            if (senhaAdmin === "#13371") {
+                toggleSidebar();
+            } else if (senhaAdmin !== null) {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar-admin').classList.toggle('ativo');
         }
 
         function renderizar() {
@@ -437,17 +458,18 @@
             const info = document.getElementById('modal-info');
 
             document.getElementById('input-senha-retirada').value = '';
+            document.getElementById('input-token-retirada').value = '';
             document.getElementById('input-senha-devolucao').value = '';
+            document.getElementById('input-token-devolucao').value = '';
 
             if (amb.status === 'disponivel') {
-                info.textContent = "Selecione o seu nome e digite a sua senha para retirar a chave.";
+                info.textContent = "Informe seus dados e o código de 2 letras exibido na tela do quadro de chaves.";
                 blocoRetirada.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
             } else {
-                info.textContent = `Esta chave está em uso por ${amb.responsavel}. Digite a senha dele(a) para confirmar a devolução:`;
+                info.textContent = `Chave com ${amb.responsavel}. Insira a senha dele(a) e o código da tela do quadro:`;
                 blocoRetirada.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
-                
                 document.getElementById('resp-devolucao-fixo').value = amb.responsavel;
             }
 
@@ -461,11 +483,17 @@
         function confirmarRetirada() {
             const nomeSelecionado = document.getElementById('select-responsavel-retirada').value;
             const senhaDigitada = document.getElementById('input-senha-retirada').value.trim();
+            const tokenDigitado = document.getElementById('input-token-retirada').value.trim().toUpperCase();
 
             const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
 
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta! Verifique a senha cadastrada para este usuário.');
+                alert('Senha pessoal incorreta!');
+                return;
+            }
+
+            if (tokenDigitado !== tokenGlobalDoBanco) {
+                alert('Código presencial de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
                 return;
             }
 
@@ -473,7 +501,6 @@
             const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
 
-            // Atualiza na nuvem
             db.ref('ambientes/' + amb.id).update({
                 status: 'ocupada',
                 responsavel: nomeSelecionado,
@@ -494,11 +521,17 @@
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             const responsavelAtual = amb.responsavel;
             const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
+            const tokenDigitado = document.getElementById('input-token-devolucao').value.trim().toUpperCase();
 
             const usuarioEncontrado = usuarios.find(u => u.nome === responsavelAtual);
 
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta! A devolução deve ser autenticada com a senha do docente responsável pela chave.');
+                alert('Senha incorreta!');
+                return;
+            }
+
+            if (tokenDigitado !== tokenGlobalDoBanco) {
+                alert('Código presencial de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
                 return;
             }
 
@@ -521,42 +554,31 @@
         }
 
         function adicionarAmbiente() {
-            const input = document.getElementById('novo-ambiente');
-            const nome = input.value.trim();
+            const nome = document.getElementById('novo-ambiente').value.trim();
             if (nome) {
-                db.ref('ambientes').push({
-                    nome: nome,
-                    status: 'disponivel',
-                    responsavel: '',
-                    hora: ''
-                });
-                input.value = '';
-                alert(`Ambiente "${nome}" cadastrado com sucesso na nuvem!`);
+                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '' });
+                document.getElementById('novo-ambiente').value = '';
+                alert(`Ambiente "${nome}" cadastrado!`);
             } else {
                 alert('Digite o nome do ambiente.');
             }
         }
 
         function adicionarUsuario() {
-            const inputNome = document.getElementById('novo-usuario');
-            const inputSenha = document.getElementById('nova-senha');
-            const nome = inputNome.value.trim();
-            const senha = inputSenha.value.trim();
+            const nome = document.getElementById('novo-usuario').value.trim();
+            const senha = document.getElementById('nova-senha').value.trim();
 
             if (nome && senha) {
                 if (usuarios.some(u => u.nome.toLowerCase() === nome.toLowerCase())) {
-                    alert('Este usuário já está cadastrado.');
+                    alert('Usuário já cadastrado.');
                     return;
                 }
-                db.ref('usuarios').push({
-                    nome: nome,
-                    senha: senha
-                });
-                inputNome.value = '';
-                inputSenha.value = '';
-                alert(`Responsável "${nome}" cadastrado com sucesso na nuvem!`);
+                db.ref('usuarios').push({ nome: nome, senha: senha });
+                document.getElementById('novo-usuario').value = '';
+                document.getElementById('nova-senha').value = '';
+                alert(`Responsável "${nome}" cadastrado!`);
             } else {
-                alert('Preencha o nome e a senha do novo responsável.');
+                alert('Preencha nome e senha.');
             }
         }
     </script>
