@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Chaves Online - SENAI SRS</title>
+    <style>
+        :root {
+            --primary: #005691;
+            --primary-dark: #003f6b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            width: 92%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            margin-top: 20px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 5px;
+        }
+
+        /* Grid de Salas/Labs */
+        .chaves-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .chave-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .chave-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        .chave-card.disponivel {
+            border-left: 6px solid var(--success);
+        }
+
+        .chave-card.ocupada {
+            border-left: 6px solid var(--danger);
+            background: #fff5f5;
+        }
+
+        .chave-nome {
+            font-weight: bold;
+            font-size: 15px;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .chave-status {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .disponivel .chave-status { color: var(--success); }
+        .ocupada .chave-status { color: var(--danger); }
+
+        .chave-detalhes {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Painéis de Administração / Cadastros */
+        .painel-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .painel-admin {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .painel-admin input {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Histórico */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+        }
+
+        /* Modal Simples */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h3 { margin-top: 0; color: var(--primary); }
+        .modal-content select, .modal-content input { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; }
+
+        footer {
+            background-color: #1e293b;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            margin-top: auto;
+            border-top: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Controle Digital de Chaves</h1>
+        <p>SENAI - Santa Rita do Sapucaí / MG</p>
+    </header>
+
+    <div class="container">
+        <div class="section-title">Status dos Ambientes e Chaves (Clique para Retirar/Devolver)</div>
+        <div id="grid-chaves" class="chaves-grid">
+            <!-- Gerado via JavaScript -->
+        </div>
+
+        <div class="painel-container">
+            <!-- Cadastro de Novo Ambiente -->
+            <div class="painel-admin">
+                <strong>➕ Incluir Novo Ambiente</strong>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Cadastre uma nova sala ou laboratório no sistema.</p>
+                <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
+                <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
+            </div>
+
+            <!-- Cadastro de Novo Usuário -->
+            <div class="painel-admin">
+                <strong>👤 Incluir Novo Responsável</strong>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Adicione um novo docente ou colaborador à lista.</p>
+                <input type="text" id="novo-usuario" placeholder="Ex: Colaborador. Carlos Felipe">
+                <button class="btn" onclick="adicionarUsuario()">Adicionar Responsável</button>
+            </div>
+        </div>
+
+        <div class="section-title">Histórico de Movimentações Recentes</div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ambiente</th>
+                        <th>Responsável</th>
+                        <th>Ação</th>
+                        <th>Data / Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-historico">
+                    <!-- Gerado via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Retirada/Devolução -->
+    <div id="modal-acao" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-titulo">Gerenciar Chave</h3>
+            <p id="modal-info" style="font-size: 13px; color: #64748b;"></p>
+            
+            <div id="bloco-retirada">
+                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável:</label>
+                <select id="select-responsavel"></select>
+                <button class="btn" style="width: 100%; margin-top: 10px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
+            </div>
+
+            <div id="bloco-devolucao" style="display: none;">
+                <button class="btn" style="width: 100%; background-color: var(--success);" onclick="confirmarDevolucao()">Confirmar Devolução</button>
+            </div>
+
+            <button class="btn" style="width: 100%; background-color: #64748b; margin-top: 8px;" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <footer>
+        <p><strong>Iniciativa 4.0</strong> - Criado por Saulo Lopes de Siqueira</p>
+    </footer>
+
+    <script>
+        let usuarios = [
+            "Andreia", "Leandro", "João", "Danilo", "Roniam", 
+            "Ramona", "Jackson", "Alberto", "Luiz", "Felipe", "Saulo", "Gil"
+        ];
+
+        let ambientes = [
+            { id: 'lab40', nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'mecanica', nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'automacao', nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'informatica', nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'eletronica', nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'eletrica_ind', nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 's301_302', nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'sala201', nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'sala302', nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '' },
+            { id: 'sala303', nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
+        ];
+
+        let historico = [];
+        let ambienteAtualId = null;
+
+        function renderizar() {
+            const grid = document.getElementById('grid-chaves');
+            grid.innerHTML = '';
+
+            ambientes.forEach(amb => {
+                const card = document.createElement('div');
+                card.className = `chave-card ${amb.status}`;
+                card.onclick = () => abrirModal(amb.id);
+
+                if (amb.status === 'disponivel') {
+                    card.innerHTML = `
+                        <div class="chave-nome">${amb.nome}</div>
+                        <div class="chave-status">🟢 Chave na Portaria</div>
+                        <div class="chave-detalhes">Clique para retirar</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="chave-nome">${amb.nome}</div>
+                        <div class="chave-status">🔴 Em Uso</div>
+                        <div class="chave-detalhes">Resp: <strong>${amb.responsavel}</strong><br>Retirada: ${amb.hora}</div>
+                    `;
+                }
+                grid.appendChild(card);
+            });
+
+            // Atualizar Select de Responsáveis no Modal
+            const select = document.getElementById('select-responsavel');
+            select.innerHTML = '';
+            usuarios.sort().forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user;
+                opt.textContent = user;
+                select.appendChild(opt);
+            });
+
+            // Atualizar Tabela de Histórico
+            const tbody = document.getElementById('tabela-historico');
+            tbody.innerHTML = '';
+            if (historico.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada hoje.</td></tr>`;
+            } else {
+                historico.forEach(h => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${h.ambiente}</td>
+                            <td>${h.responsavel}</td>
+                            <td><span style="color: ${h.tipo === 'Retirada' ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">${h.tipo}</span></td>
+                            <td>${h.dataHora}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function abrirModal(id) {
+            ambienteAtualId = id;
+            const amb = ambientes.find(a => a.id === id);
+            document.getElementById('modal-titulo').textContent = amb.nome;
+
+            const blocoRetirada = document.getElementById('bloco-retirada');
+            const blocoDevolucao = document.getElementById('bloco-devolucao');
+            const info = document.getElementById('modal-info');
+
+            if (amb.status === 'disponivel') {
+                info.textContent = "Esta chave está disponível na portaria.";
+                blocoRetirada.style.display = 'block';
+                blocoDevolucao.style.display = 'none';
+            } else {
+                info.textContent = `Retirada por ${amb.responsavel} às ${amb.hora}. Deseja registrar a devolução?`;
+                blocoRetirada.style.display = 'none';
+                blocoDevolucao.style.display = 'block';
+            }
+
+            document.getElementById('modal-acao').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-acao').style.display = 'none';
+        }
+
+        function confirmarRetirada() {
+            const responsavel = document.getElementById('select-responsavel').value;
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
+
+            amb.status = 'ocupada';
+            amb.responsavel = responsavel;
+            amb.hora = agora;
+
+            historico.unshift({
+                ambiente: amb.nome,
+                responsavel: responsavel,
+                tipo: 'Retirada',
+                dataHora: dataCompleta
+            });
+
+            fecharModal();
+            renderizar();
+        }
+
+        function confirmarDevolucao() {
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            const dataCompleta = new Date().toLocaleString();
+
+            historico.unshift({
+                ambiente: amb.nome,
+                responsavel: amb.responsavel,
+                tipo: 'Devolução',
+                dataHora: dataCompleta
+            });
+
+            amb.status = 'disponivel';
+            amb.responsavel = '';
+            amb.hora = '';
+
+            fecharModal();
+            renderizar();
+        }
+
+        function adicionarAmbiente() {
+            const input = document.getElementById('novo-ambiente');
+            const nome = input.value.trim();
+            if (nome) {
+                const idGerado = 'amb_' + Date.now();
+                ambientes.push({
+                    id: idGerado,
+                    nome: nome,
+                    status: 'disponivel',
+                    responsavel: '',
+                    hora: ''
+                });
+                input.value = '';
+                renderizar();
+                alert(`Ambiente "${nome}" cadastrado com sucesso!`);
+            } else {
+                alert('Digite o nome do ambiente.');
+            }
+        }
+
+        function adicionarUsuario() {
+            const input = document.getElementById('novo-usuario');
+            const nome = input.value.trim();
+            if (nome && !usuarios.includes(nome)) {
+                usuarios.push(nome);
+                input.value = '';
+                renderizar();
+                alert(`Responsável "${nome}" cadastrado com sucesso!`);
+            } else {
+                alert('Digite um nome válido ou que ainda não esteja na lista.');
+            }
+        }
+
+        window.onload = renderizar;
+    </script>
+</body>
+</html>
