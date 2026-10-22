@@ -58,7 +58,7 @@
         .btn-admin-toggle:hover { background-color: rgba(255, 255, 255, 0.25); }
 
         .container {
-            max-width: 1250px;
+            max-width: 1300px;
             margin: 20px auto;
             padding: 20px;
             width: 95%;
@@ -221,7 +221,7 @@
             padding: 25px;
             border-radius: 10px;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             max-height: 90vh;
             overflow-y: auto;
@@ -229,7 +229,20 @@
 
         .modal-content h3 { margin-top: 0; color: var(--primary); }
         .modal-content select, .modal-content input, .modal-content textarea { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
-        .modal-content textarea { resize: vertical; height: 70px; font-family: inherit; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .modal-content textarea { resize: vertical; height: 60px; font-family: inherit; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; }
+
+        .link-arquivo {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 3px;
+        }
+        .link-arquivo:hover { background-color: #bae6fd; }
 
         footer {
             background-color: #1e293b;
@@ -282,7 +295,7 @@
                         <th>Responsável</th>
                         <th>Ação</th>
                         <th>Data / Hora</th>
-                        <th>Observações</th>
+                        <th>Observações e Anexo</th>
                     </tr>
                 </thead>
                 <tbody id="tabela-historico"></tbody>
@@ -333,7 +346,10 @@
                 <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações (Opcional):</label>
-                <textarea id="input-obs-retirada" placeholder="Ex: Equipamento verificado, tudo ok..."></textarea>
+                <textarea id="input-obs-retirada" placeholder="Ex: Equipamento verificado..."></textarea>
+
+                <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
+                <input type="file" id="input-arquivo-retirada" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
                 
                 <button class="btn" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
             </div>
@@ -350,6 +366,9 @@
 
                 <label style="font-size: 12px; font-weight: bold;">Observações da Devolução (Opcional):</label>
                 <textarea id="input-obs-devolucao" placeholder="Ex: Chave devolvida sem avarias..."></textarea>
+
+                <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
+                <input type="file" id="input-arquivo-devolucao" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
                 
                 <button class="btn" style="width: 100%; background-color: var(--success); margin-top: 5px;" onclick="confirmarDevolucao()">Confirmar Devolução</button>
             </div>
@@ -493,13 +512,21 @@
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada.</td></tr>`;
             } else {
                 historico.forEach(h => {
+                    let htmlAnexo = '-';
+                    if (h.arquivoData && h.arquivoNome) {
+                        htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
+                    }
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${h.ambiente}</td>
                             <td>${h.responsavel}</td>
                             <td><span style="color: ${h.tipo === 'Retirada' ? 'var(--danger)' : (h.tipo === 'Manutenção' ? 'var(--warning)' : 'var(--success)')}; font-weight: bold;">${h.tipo}</span></td>
                             <td>${h.dataHora}</td>
-                            <td style="color: #64748b; font-style: italic;">${h.observacoes || '-'}</td>
+                            <td>
+                                <span style="color: #64748b; font-style: italic;">${h.observacoes || '-'}</span>
+                                ${htmlAnexo}
+                            </td>
                         </tr>
                     `;
                 });
@@ -531,9 +558,11 @@
             document.getElementById('input-senha-retirada').value = '';
             document.getElementById('input-token-retirada').value = '';
             document.getElementById('input-obs-retirada').value = '';
+            document.getElementById('input-arquivo-retirada').value = '';
             document.getElementById('input-senha-devolucao').value = '';
             document.getElementById('input-token-devolucao').value = '';
             document.getElementById('input-obs-devolucao').value = '';
+            document.getElementById('input-arquivo-devolucao').value = '';
 
             blocoAdminStatus.style.display = 'block';
 
@@ -562,7 +591,7 @@
         }
 
         function alternarManutencao() {
-            const senhaManutencao = prompt("Digite a senha de manutenção (Solicitar ao Supervisor Técnico) para alterar o status:");
+            const senhaManutencao = prompt("Digite a senha de manutenção (#Manutencao) para alterar o status:");
             if (senhaManutencao !== "#Manutencao") {
                 if (senhaManutencao !== null) alert("Senha de manutenção incorreta!");
                 return;
@@ -629,6 +658,7 @@
             const senhaDigitada = document.getElementById('input-senha-retirada').value.trim();
             const tokenDigitado = document.getElementById('input-token-retirada').value.trim().toUpperCase();
             const observacoes = document.getElementById('input-obs-retirada').value.trim();
+            const arquivoInput = document.getElementById('input-arquivo-retirada');
 
             const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
 
@@ -646,18 +676,32 @@
             const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
 
+            if (arquivoInput.files && arquivoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    salvarRetiradaNoFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, arquivoInput.files[0].name, e.target.result);
+                };
+                reader.readAsDataURL(arquivoInput.files[0]);
+            } else {
+                salvarRetiradaNoFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, null, null);
+            }
+        }
+
+        function salvarRetiradaNoFirebase(amb, responsavel, dataCompleta, hora, obs, nomeArq, dadosArq) {
             db.ref('ambientes/' + amb.id).update({
                 status: 'ocupada',
-                responsavel: nomeSelecionado,
-                hora: agora
+                responsavel: responsavel,
+                hora: hora
             });
 
             db.ref('historico').push({
                 ambiente: amb.nome,
-                responsavel: nomeSelecionado,
+                responsavel: responsavel,
                 tipo: 'Retirada',
                 dataHora: dataCompleta,
-                observacoes: observacoes || '-'
+                observacoes: obs || '-',
+                arquivoNome: nomeArq || null,
+                arquivoData: dadosArq || null
             });
 
             fecharModal();
@@ -669,6 +713,7 @@
             const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
             const tokenDigitado = document.getElementById('input-token-devolucao').value.trim().toUpperCase();
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
+            const arquivoInput = document.getElementById('input-arquivo-devolucao');
 
             const usuarioEncontrado = usuarios.find(u => u.nome === responsavelAtual);
 
@@ -684,6 +729,18 @@
 
             const dataCompleta = new Date().toLocaleString();
 
+            if (arquivoInput.files && arquivoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    salvarDevolucaoNoFirebase(amb, responsavelAtual, dataCompleta, observacoes, arquivoInput.files[0].name, e.target.result);
+                };
+                reader.readAsDataURL(arquivoInput.files[0]);
+            } else {
+                salvarDevolucaoNoFirebase(amb, responsavelAtual, dataCompleta, observacoes, null, null);
+            }
+        }
+
+        function salvarDevolucaoNoFirebase(amb, responsavel, dataCompleta, obs, nomeArq, dadosArq) {
             db.ref('ambientes/' + amb.id).update({
                 status: 'disponivel',
                 responsavel: '',
@@ -692,10 +749,12 @@
 
             db.ref('historico').push({
                 ambiente: amb.nome,
-                responsavel: responsavelAtual,
+                responsavel: responsavel,
                 tipo: 'Devolução',
                 dataHora: dataCompleta,
-                observacoes: observacoes || '-'
+                observacoes: obs || '-',
+                arquivoNome: nomeArq || null,
+                arquivoData: dadosArq || null
             });
 
             fecharModal();
@@ -716,6 +775,7 @@
                 conteudo += `Acao: ${h.tipo}\n`;
                 conteudo += `Data/Hora: ${h.dataHora}\n`;
                 conteudo += `Observacoes: ${h.observacoes || '-'}\n`;
+                if (h.arquivoNome) conteudo += `Anexo: ${h.arquivoNome}\n`;
                 conteudo += "--------------------------------------------------\n";
             });
 
