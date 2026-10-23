@@ -766,7 +766,7 @@
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            // 2. Dispara o e-mail via EmailJS com tratamento explícito de erro
+            // 2. Dispara o e-mail via EmailJS
             let templateParams = {
                 to_email: "romario.carlos@fiemg.com.br",
                 ambiente: amb.nome,
@@ -778,7 +778,7 @@
             emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
                 .then(function(response) {
                     console.log("SUCCESS!", response.status, response.text);
-                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso!');
+                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
                 }, function(error) {
                     console.log("FAILED...", error);
                     alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
@@ -786,7 +786,6 @@
 
             fecharModal();
         }
-
 
 
         function fecharModal() {
