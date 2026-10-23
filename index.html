@@ -393,7 +393,7 @@
                 <label style="font-size: 12px; font-weight: bold;">Senha do Docente:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Apenas se for fechar a chave de vez)</span>:</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
                 <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
@@ -552,7 +552,7 @@
                 grid.appendChild(card);
             });
 
-            popularSelects();
+            popularSelectsRetiradaECoocupacao();
 
             const tbody = document.getElementById('tabela-historico');
             tbody.innerHTML = '';
@@ -585,10 +585,10 @@
             }
         }
 
-        function popularSelects() {
+        function popularSelectsRetiradaECoocupacao() {
             usuarios.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            ['select-responsavel-retirada', 'select-responsavel-coocupar', 'select-responsavel-devolucao'].forEach(id => {
+            ['select-responsavel-retirada', 'select-responsavel-coocupar'].forEach(id => {
                 const select = document.getElementById(id);
                 if (select) {
                     select.innerHTML = '';
@@ -638,10 +638,29 @@
                 blocoCoocupar.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
-                info.textContent = `Ambiente em uso. Selecione o docente que vai sair ou devolver a chave:`;
+                info.textContent = `Ambiente em uso. Selecione o docente que está saindo (apenas participantes ativos):`;
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
+
+                // SEGURANÇA: Popula o select de devolução APENAS com quem está na sala
+                const selectDev = document.getElementById('select-responsavel-devolucao');
+                selectDev.innerHTML = '';
+                
+                let permitidos = [];
+                if (amb.responsavel) permitidos.push(amb.responsavel);
+                if (amb.coocupantes) {
+                    Object.values(amb.coocupantes).forEach(nome => {
+                        if (!permitidos.includes(nome)) permitidos.push(nome);
+                    });
+                }
+
+                permitidos.forEach(nome => {
+                    let opt = document.createElement('option');
+                    opt.value = nome;
+                    opt.textContent = nome + (nome === amb.responsavel ? ' (Responsável Principal)' : ' (Co-ocupante)');
+                    selectDev.appendChild(opt);
+                });
             }
 
             document.getElementById('modal-acao').style.display = 'flex';
@@ -808,20 +827,28 @@
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
 
+            // Validação de segurança: Verifica se o usuário realmente está na sessão
+            let coocupantes = amb.coocupantes || {};
+            let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
+            
+            if (!estaNaSala) {
+                alert('Acesso negado: Este usuário não está registrado como participante ativo nesta sala!');
+                return;
+            }
+
             const usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
                 alert('Senha incorreta para o docente selecionado!');
                 return;
             }
 
-            let coocupantes = amb.coocupantes || {};
             let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
-            let totalParticipantes = Object.keys(coocupantes).length;
+            let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
 
-            // Se for o último saindo ou se só houver ele, exige token físico para encerrar e devolver a chave
-            if (totalParticipantes <= 1) {
+            // Se for o último saindo, exige o token físico do quadro de chaves
+            if (restantesKeysTemp.length === 0) {
                 if (tokenDigitado !== tokenGlobalDoBanco) {
-                    alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável, valide o display no quadro.');
+                    alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
                     return;
                 }
             }
@@ -831,38 +858,44 @@
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, totalParticipantes, arquivoInput.files[0].name, e.target.result);
+                    processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, arquivoInput.files[0].name, e.target.result);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, totalParticipantes, null, null);
+                processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, null, null);
             }
         }
 
-        function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, totalParticipantes, nomeArq, dadosArq) {
+        function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, nomeArq, dadosArq) {
             delete coocupantes[chaveKey];
             let restantesKeys = Object.keys(coocupantes);
 
-            if (restantesKeys.length > 0) {
-                // Ainda existem pessoas na sala!
-                let proximoChaveKey = restantesKeys[0];
-                let proximoNome = coocupantes[proximoChaveKey];
+            const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
 
-                if (amb.responsavel === responsavelSaindo) {
-                    if (confirm(`Atenção: O(A) Prof(a). ${proximoNome} ainda está na sala em co-ocupação. Deseja transferir a custódia principal da chave para ele(a)?`)) {
+            if (restantesKeys.length > 0) {
+                // AINDA EXISTEM PESSOAS NA SALA
+                if (eraOResponsavelPrincipal) {
+                    // Se o principal está saindo mas há co-ocupantes, perguntamos se quer transferir a responsabilidade principal
+                    let proximoChaveKey = restantesKeys[0];
+                    let proximoNome = coocupantes[proximoChaveKey];
+
+                    if (confirm(`Atenção: O(A) Prof(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
                         db.ref('ambientes/' + amb.id).update({
                             responsavel: proximoNome,
                             coocupantes: coocupantes
                         });
-                        alert(`Custódia principal transferida para ${proximoNome}! Sua saída foi registrada.`);
+                        alert(`Custódia principal transferida com sucesso para ${proximoNome}!`);
                     } else {
-                        return; // Cancela se o utilizador não quiser transferir
+                        return; // Cancela a saída se o principal não quiser transferir
                     }
                 } else {
+                    // SE QUEM ESTÁ SAINDO É UM CO-OCUPANTE (ex: o João continua na sala):
+                    // Apenas removemos o co-ocupante. O responsável principal NÃO MUDA e a sala continua ocupada com o responsável principal original!
                     db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
-                    alert("Sua saída da sessão foi registada com sucesso.");
+                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Prof(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
                 }
 
+                // Registra o histórico da saída do participante
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
@@ -875,7 +908,7 @@
 
                 fecharModal();
             } else {
-                // Não há mais ninguém, devolve a chave de vez para a portaria
+                // NÃO HÁ MAIS NINGUÉM NA SALA: Devolve a chave de vez para a portaria
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
                     responsavel: '',
