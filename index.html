@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Chaves Online - SENAI SRS</title>
+    <title>Controle Digital de Chaves - SENAI SRS</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -108,7 +108,7 @@
 
         .chaves-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -118,9 +118,11 @@
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             padding: 15px;
-            cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .chave-card:hover {
@@ -138,7 +140,13 @@
         .ocupada .chave-status { color: var(--danger); }
         .manutencao .chave-status { color: var(--warning); font-weight: bold; }
 
-        .chave-detalhes { font-size: 12px; color: #64748b; }
+        .chave-detalhes { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: auto;
+        }
 
         .sidebar {
             position: fixed;
@@ -194,13 +202,21 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 12px;
             font-weight: 600;
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
+            font-size: 12px;
+            text-align: center;
         }
         .btn:hover { background-color: var(--primary-dark); }
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: #059669; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-warning { background-color: var(--warning); color: #000; }
+        .btn-warning:hover { background-color: #b45309; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
@@ -221,7 +237,7 @@
             padding: 25px;
             border-radius: 10px;
             width: 90%;
-            max-width: 420px;
+            max-width: 450px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             max-height: 90vh;
             overflow-y: auto;
@@ -276,7 +292,7 @@
     </header>
 
     <div class="container">
-        <div class="section-title">Status dos Ambientes e Chaves (Clique para Gerenciar)</div>
+        <div class="section-title">Status dos Ambientes e Chaves</div>
         <div id="grid-chaves" class="chaves-grid"></div>
 
         <div class="section-header">
@@ -292,7 +308,7 @@
                 <thead>
                     <tr>
                         <th>Ambiente</th>
-                        <th>Responsável</th>
+                        <th>Responsável / Co-ocupantes</th>
                         <th>Ação</th>
                         <th>Data / Hora</th>
                         <th>Observações e Anexo</th>
@@ -324,7 +340,7 @@
         </div>
     </div>
 
-    <!-- Modal de Interação de Chaves / Manutenção -->
+    <!-- Modal de Interação de Chaves / Manutenção / Co-ocupação -->
     <div id="modal-acao" class="modal">
         <div class="modal-content">
             <h3 id="modal-titulo">Gerenciar Chave</h3>
@@ -332,11 +348,12 @@
             
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
-                <button class="btn" id="btn-toggle-manutencao" style="width: 100%; background-color: var(--warning); margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
+                <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
             </div>
 
+            <!-- BLOCO DE RETIRADA INICIAL -->
             <div id="bloco-retirada" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável:</label>
+                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável Principal:</label>
                 <select id="select-responsavel-retirada"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
@@ -345,32 +362,47 @@
                 <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
                 <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
-                <label style="font-size: 12px; font-weight: bold;">Observações (Opcional):</label>
-                <textarea id="input-obs-retirada" placeholder="Ex: Equipamento verificado..."></textarea>
+                <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
+                <textarea id="input-obs-retirada" placeholder="Ex: Turma Técnico Eletroeletrônica..."></textarea>
 
                 <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
                 <input type="file" id="input-arquivo-retirada" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
                 
-                <button class="btn" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
+                <button class="btn btn-success" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
             </div>
 
+            <!-- BLOCO DE CO-OCUPAÇÃO (ENTRAR NA SESSÃO) -->
+            <div id="bloco-coocupar" style="display: none;">
+                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Professor / Projeto):</label>
+                <select id="select-responsavel-coocupar"></select>
+                
+                <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
+                <input type="password" id="input-senha-coocupar" placeholder="Senha do docente">
+
+                <label style="font-size: 12px; font-weight: bold;">Turma / Projeto / Motivo:</label>
+                <textarea id="input-obs-coocupar" placeholder="Ex: Projeto Integrador / Pesquisa IoT..."></textarea>
+                
+                <button class="btn btn-warning" style="width: 100%; margin-top: 5px;" onclick="confirmarCoocupacao()">Entrar na Sessão (Co-ocupar)</button>
+            </div>
+
+            <!-- BLOCO DE DEVOLUÇÃO / SAÍDA -->
             <div id="bloco-devolucao" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Responsável pela Devolução:</label>
-                <input type="text" id="resp-devolucao-fixo" readonly style="background: #e2e8f0; font-weight: bold; cursor: not-allowed;">
+                <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
+                <select id="select-responsavel-devolucao"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Senha do Docente:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Apenas se for fechar a chave de vez)</span>:</label>
                 <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
-                <label style="font-size: 12px; font-weight: bold;">Observações da Devolução (Opcional):</label>
-                <textarea id="input-obs-devolucao" placeholder="Ex: Chave devolvida sem avarias..."></textarea>
+                <label style="font-size: 12px; font-weight: bold;">Observações:</label>
+                <textarea id="input-obs-devolucao" placeholder="Ex: Sala devolvida sem pendências..."></textarea>
 
                 <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
                 <input type="file" id="input-arquivo-devolucao" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
                 
-                <button class="btn" style="width: 100%; background-color: var(--success); margin-top: 5px;" onclick="confirmarDevolucao()">Confirmar Devolução</button>
+                <button class="btn btn-success" id="btn-executar-devolucao" style="width: 100%; margin-top: 5px;" onclick="confirmarDevolucao()">Finalizar / Sair</button>
             </div>
 
             <button class="btn" style="width: 100%; background-color: #64748b; margin-top: 10px;" onclick="fecharModal()">Cancelar</button>
@@ -480,25 +512,41 @@
             ambientes.forEach(amb => {
                 const card = document.createElement('div');
                 card.className = `chave-card ${amb.status}`;
-                card.onclick = () => abrirModal(amb.id);
 
                 if (amb.status === 'disponivel') {
                     card.innerHTML = `
-                        <div class="chave-nome">${amb.nome}</div>
-                        <div class="chave-status">🟢 Chave na Portaria</div>
-                        <div class="chave-detalhes">Clique para retirar</div>
+                        <div>
+                            <div class="chave-nome">${amb.nome}</div>
+                            <div class="chave-status">🟢 Chave na Portaria</div>
+                            <div class="chave-detalhes">Disponível para retirada</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-success" style="width:100%;" onclick="abrirModal('${amb.id}', 'retirar')">Retirar Chave</button>
+                        </div>
                     `;
                 } else if (amb.status === 'ocupada') {
+                    let listaCoocupantes = amb.coocupantes ? Object.values(amb.coocupantes).join(', ') : amb.responsavel;
                     card.innerHTML = `
-                        <div class="chave-nome">${amb.nome}</div>
-                        <div class="chave-status">🔴 Em Uso</div>
-                        <div class="chave-detalhes">Resp: <strong>${amb.responsavel}</strong><br>Retirada: ${amb.hora}</div>
+                        <div>
+                            <div class="chave-nome">${amb.nome}</div>
+                            <div class="chave-status">🔴 Em Uso</div>
+                            <div class="chave-detalhes">Principal: <strong>${amb.responsavel}</strong><br>Participantes: ${listaCoocupantes}<br>Início: ${amb.hora}</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-warning" style="flex:1;" onclick="abrirModal('${amb.id}', 'coocupar')">＋ Entrar</button>
+                            <button class="btn btn-danger" style="flex:1;" onclick="abrirModal('${amb.id}', 'devolver')">Devolver</button>
+                        </div>
                     `;
                 } else if (amb.status === 'manutencao') {
                     card.innerHTML = `
-                        <div class="chave-nome">${amb.nome}</div>
-                        <div class="chave-status" style="color: var(--warning); font-weight: bold;">⚠️ EM MANUTENÇÃO</div>
-                        <div class="chave-detalhes">Resp: <strong>${amb.responsavel || 'Manutenção'}</strong></div>
+                        <div>
+                            <div class="chave-nome">${amb.nome}</div>
+                            <div class="chave-status" style="color: var(--warning); font-weight: bold;">⚠️ MANUTENÇÃO</div>
+                            <div class="chave-detalhes">Resp: <strong>${amb.responsavel || 'Manutenção'}</strong></div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-warning" style="width:100%;" onclick="abrirModal('${amb.id}', 'manutencao')">Gerenciar</button>
+                        </div>
                     `;
                 }
                 grid.appendChild(card);
@@ -517,11 +565,15 @@
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
                     }
 
+                    let corTipo = 'var(--success)';
+                    if (h.tipo === 'Retirada' || h.tipo === 'Saída da Sessão') corTipo = 'var(--danger)';
+                    if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação') corTipo = 'var(--warning)';
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${h.ambiente}</td>
                             <td>${h.responsavel}</td>
-                            <td><span style="color: ${h.tipo === 'Retirada' ? 'var(--danger)' : (h.tipo === 'Manutenção' ? 'var(--warning)' : 'var(--success)')}; font-weight: bold;">${h.tipo}</span></td>
+                            <td><span style="color: ${corTipo}; font-weight: bold;">${h.tipo}</span></td>
                             <td>${h.dataHora}</td>
                             <td>
                                 <span style="color: #64748b; font-style: italic;">${h.observacoes || '-'}</span>
@@ -534,57 +586,62 @@
         }
 
         function popularSelects() {
-            const select = document.getElementById('select-responsavel-retirada');
-            select.innerHTML = '';
-            usuarios.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(user => {
-                const opt = document.createElement('option');
-                opt.value = user.nome;
-                opt.textContent = user.nome;
-                select.appendChild(opt);
+            usuarios.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            ['select-responsavel-retirada', 'select-responsavel-coocupar', 'select-responsavel-devolucao'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.innerHTML = '';
+                    usuarios.forEach(user => {
+                        const opt = document.createElement('option');
+                        opt.value = user.nome;
+                        opt.textContent = user.nome;
+                        select.appendChild(opt);
+                    });
+                }
             });
         }
 
-        function abrirModal(id) {
+        function abrirModal(id, acaoForcada) {
             ambienteAtualId = id;
             const amb = ambientes.find(a => a.id === id);
             document.getElementById('modal-titulo').textContent = amb.nome;
 
             const blocoRetirada = document.getElementById('bloco-retirada');
+            const blocoCoocupar = document.getElementById('bloco-coocupar');
             const blocoDevolucao = document.getElementById('bloco-devolucao');
             const blocoAdminStatus = document.getElementById('bloco-admin-status');
             const btnManutencao = document.getElementById('btn-toggle-manutencao');
             const info = document.getElementById('modal-info');
 
-            document.getElementById('input-senha-retirada').value = '';
-            document.getElementById('input-token-retirada').value = '';
-            document.getElementById('input-obs-retirada').value = '';
-            document.getElementById('input-arquivo-retirada').value = '';
-            document.getElementById('input-senha-devolucao').value = '';
-            document.getElementById('input-token-devolucao').value = '';
-            document.getElementById('input-obs-devolucao').value = '';
-            document.getElementById('input-arquivo-devolucao').value = '';
+            // Limpa campos
+            document.querySelectorAll('.modal-content input[type="password"], .modal-content input[type="text"], .modal-content textarea').forEach(el => el.value = '');
+            document.querySelectorAll('.modal-content input[type="file"]').forEach(el => el.value = '');
 
             blocoAdminStatus.style.display = 'block';
 
-            if (amb.status === 'manutencao') {
-                btnManutencao.textContent = "✅ Retirar da Manutenção (Liberar)";
-                btnManutencao.style.backgroundColor = "var(--success)";
-                info.textContent = `Ambiente em manutenção por: ${amb.responsavel || 'Manutenção'}.`;
+            if (amb.status === 'manutencao' || acaoForcada === 'manutencao') {
+                btnManutencao.textContent = amb.status === 'manutencao' ? "✅ Retirar da Manutenção (Liberar)" : "⚠️ Colocar em Manutenção";
+                btnManutencao.style.backgroundColor = amb.status === 'manutencao' ? "var(--success)" : "var(--warning)";
+                info.textContent = `Gestão de Manutenção para o ambiente ${amb.nome}.`;
                 blocoRetirada.style.display = 'none';
+                blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
-            } else if (amb.status === 'disponivel') {
-                btnManutencao.textContent = "⚠️ Colocar em Manutenção";
-                btnManutencao.style.backgroundColor = "var(--warning)";
+            } else if (acaoForcada === 'retirar') {
                 info.textContent = "Informe seus dados e o código de 2 letras exibido na tela do quadro para retirar a chave.";
                 blocoRetirada.style.display = 'block';
+                blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
-            } else {
-                btnManutencao.textContent = "⚠️ Colocar em Manutenção";
-                btnManutencao.style.backgroundColor = "var(--warning)";
-                info.textContent = `Chave com ${amb.responsavel}. Insira a senha dele(a) e o código da tela do quadro para devolver:`;
+            } else if (acaoForcada === 'coocupar') {
+                info.textContent = "Adicione-se como co-ocupante desta sala/laboratório em andamento.";
                 blocoRetirada.style.display = 'none';
+                blocoCoocupar.style.display = 'block';
+                blocoDevolucao.style.display = 'none';
+            } else if (acaoForcada === 'devolver') {
+                info.textContent = `Ambiente em uso. Selecione o docente que vai sair ou devolver a chave:`;
+                blocoRetirada.style.display = 'none';
+                blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
-                document.getElementById('resp-devolucao-fixo').value = amb.responsavel;
             }
 
             document.getElementById('modal-acao').style.display = 'flex';
@@ -606,7 +663,8 @@
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
                     responsavel: '',
-                    hora: ''
+                    hora: '',
+                    coocupantes: null
                 });
 
                 db.ref('historico').push({
@@ -620,20 +678,21 @@
                 fecharModal();
                 alert('Ambiente liberado com sucesso!');
             } else {
-                let nomeResponsavelTecnico = prompt("Digite o nome do responsável pela manutenção (Ex: Manutenção / Nome):");
+                let nomeResponsavelTecnico = prompt("Digite o nome do responsável pela manutenção:");
                 if (!nomeResponsavelTecnico || nomeResponsavelTecnico.trim() === "") {
                     nomeResponsavelTecnico = "Manutenção";
                 } else {
                     nomeResponsavelTecnico = "Manutenção / " + nomeResponsavelTecnico.trim();
                 }
 
-                const obsManutencao = prompt("Motivo / Observação da Manutenção (Opcional):") || "Manutenção preventiva/corretiva";
+                const obsManutencao = prompt("Motivo da Manutenção (Opcional):") || "Manutenção preventiva/corretiva";
                 const dataCompleta = new Date().toLocaleString();
 
                 db.ref('ambientes/' + amb.id).update({
                     status: 'manutencao',
                     responsavel: nomeResponsavelTecnico,
-                    hora: ''
+                    hora: '',
+                    coocupantes: null
                 });
 
                 db.ref('historico').push({
@@ -645,7 +704,7 @@
                 });
 
                 fecharModal();
-                alert('Ambiente colocado em manutenção com registo para: ' + nomeResponsavelTecnico);
+                alert('Ambiente colocado em manutenção.');
             }
         }
 
@@ -676,22 +735,26 @@
             const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
 
+            let coocupantesObj = {};
+            coocupantesObj[nomeSelecionado.replace(/[^a-zA-Z0-9]/g, '_')] = nomeSelecionado;
+
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    salvarRetiradaNoFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, arquivoInput.files[0].name, e.target.result);
+                    salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                salvarRetiradaNoFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, null, null);
+                salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, coocupantesObj, null, null);
             }
         }
 
-        function salvarRetiradaNoFirebase(amb, responsavel, dataCompleta, hora, obs, nomeArq, dadosArq) {
+        function salvarRetiradaFirebase(amb, responsavel, dataCompleta, hora, obs, coocupantes, nomeArq, dadosArq) {
             db.ref('ambientes/' + amb.id).update({
                 status: 'ocupada',
                 responsavel: responsavel,
-                hora: hora
+                hora: hora,
+                coocupantes: coocupantes
             });
 
             db.ref('historico').push({
@@ -707,24 +770,60 @@
             fecharModal();
         }
 
+        function confirmarCoocupacao() {
+            const nomeSelecionado = document.getElementById('select-responsavel-coocupar').value;
+            const senhaDigitada = document.getElementById('input-senha-coocupar').value.trim();
+            const observacoes = document.getElementById('input-obs-coocupar').value.trim();
+
+            const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
+            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                alert('Senha pessoal incorreta!');
+                return;
+            }
+
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            let coocupantes = amb.coocupantes || {};
+            coocupantes[nomeSelecionado.replace(/[^a-zA-Z0-9]/g, '_')] = nomeSelecionado;
+
+            db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
+
+            const dataCompleta = new Date().toLocaleString();
+            db.ref('historico').push({
+                ambiente: amb.nome,
+                responsavel: nomeSelecionado,
+                tipo: 'Co-ocupação',
+                dataHora: dataCompleta,
+                observacoes: observacoes || 'Entrou na sessão ativa'
+            });
+
+            fecharModal();
+            alert(`Prof. ${nomeSelecionado} adicionado com sucesso à sessão!`);
+        }
+
         function confirmarDevolucao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            const responsavelAtual = amb.responsavel;
+            const responsavelSaindo = document.getElementById('select-responsavel-devolucao').value;
             const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
             const tokenDigitado = document.getElementById('input-token-devolucao').value.trim().toUpperCase();
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
 
-            const usuarioEncontrado = usuarios.find(u => u.nome === responsavelAtual);
-
+            const usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta!');
+                alert('Senha incorreta para o docente selecionado!');
                 return;
             }
 
-            if (tokenDigitado !== tokenGlobalDoBanco) {
-                alert('Código presencial de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
-                return;
+            let coocupantes = amb.coocupantes || {};
+            let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
+            let totalParticipantes = Object.keys(coocupantes).length;
+
+            // Se for o último saindo ou se só houver ele, exige token físico para encerrar e devolver a chave
+            if (totalParticipantes <= 1) {
+                if (tokenDigitado !== tokenGlobalDoBanco) {
+                    alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável, valide o display no quadro.');
+                    return;
+                }
             }
 
             const dataCompleta = new Date().toLocaleString();
@@ -732,32 +831,71 @@
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    salvarDevolucaoNoFirebase(amb, responsavelAtual, dataCompleta, observacoes, arquivoInput.files[0].name, e.target.result);
+                    processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, totalParticipantes, arquivoInput.files[0].name, e.target.result);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                salvarDevolucaoNoFirebase(amb, responsavelAtual, dataCompleta, observacoes, null, null);
+                processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, totalParticipantes, null, null);
             }
         }
 
-        function salvarDevolucaoNoFirebase(amb, responsavel, dataCompleta, obs, nomeArq, dadosArq) {
-            db.ref('ambientes/' + amb.id).update({
-                status: 'disponivel',
-                responsavel: '',
-                hora: ''
-            });
+        function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, totalParticipantes, nomeArq, dadosArq) {
+            delete coocupantes[chaveKey];
+            let restantesKeys = Object.keys(coocupantes);
 
-            db.ref('historico').push({
-                ambiente: amb.nome,
-                responsavel: responsavel,
-                tipo: 'Devolução',
-                dataHora: dataCompleta,
-                observacoes: obs || '-',
-                arquivoNome: nomeArq || null,
-                arquivoData: dadosArq || null
-            });
+            if (restantesKeys.length > 0) {
+                // Ainda existem pessoas na sala!
+                let proximoChaveKey = restantesKeys[0];
+                let proximoNome = coocupantes[proximoChaveKey];
 
-            fecharModal();
+                if (amb.responsavel === responsavelSaindo) {
+                    if (confirm(`Atenção: O(A) Prof(a). ${proximoNome} ainda está na sala em co-ocupação. Deseja transferir a custódia principal da chave para ele(a)?`)) {
+                        db.ref('ambientes/' + amb.id).update({
+                            responsavel: proximoNome,
+                            coocupantes: coocupantes
+                        });
+                        alert(`Custódia principal transferida para ${proximoNome}! Sua saída foi registrada.`);
+                    } else {
+                        return; // Cancela se o utilizador não quiser transferir
+                    }
+                } else {
+                    db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
+                    alert("Sua saída da sessão foi registada com sucesso.");
+                }
+
+                db.ref('historico').push({
+                    ambiente: amb.nome,
+                    responsavel: responsavelSaindo,
+                    tipo: 'Saída da Sessão',
+                    dataHora: dataCompleta,
+                    observacoes: obs || 'Saiu da co-ocupação',
+                    arquivoNome: nomeArq || null,
+                    arquivoData: dadosArq || null
+                });
+
+                fecharModal();
+            } else {
+                // Não há mais ninguém, devolve a chave de vez para a portaria
+                db.ref('ambientes/' + amb.id).update({
+                    status: 'disponivel',
+                    responsavel: '',
+                    hora: '',
+                    coocupantes: null
+                });
+
+                db.ref('historico').push({
+                    ambiente: amb.nome,
+                    responsavel: responsavelSaindo,
+                    tipo: 'Devolução',
+                    dataHora: dataCompleta,
+                    observacoes: obs || 'Chave devolvida à portaria',
+                    arquivoNome: nomeArq || null,
+                    arquivoData: dadosArq || null
+                });
+
+                fecharModal();
+                alert("Chave devolvida e laboratório liberado com sucesso no sistema!");
+            }
         }
 
         function baixarTXT() {
