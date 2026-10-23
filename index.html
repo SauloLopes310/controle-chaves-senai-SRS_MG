@@ -344,7 +344,7 @@
 
         <div class="painel-admin">
             <strong>👤 Novo Responsável</strong>
-            <input type="text" id="novo-usuario" placeholder="Nome do Professor...">
+            <input type="text" id="novo-usuario" placeholder="Nome do Colaborador...">
             <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
             <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
         </div>
@@ -385,7 +385,7 @@
 
             <!-- BLOCO DE CO-OCUPAÇÃO (ENTRAR NA SESSÃO) -->
             <div id="bloco-coocupar" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Professor / Projeto):</label>
+                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Colaborador / Projeto):</label>
                 <select id="select-responsavel-coocupar"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
@@ -768,7 +768,7 @@
 
             // 2. Dispara o e-mail via EmailJS com tratamento explícito de erro
             let templateParams = {
-                to_email: "saulo.lopes7@gmail.com",
+                to_email: "romario.carlos@fiemg.com.br",
                 ambiente: amb.nome,
                 solicitante: solicitante.trim(),
                 motivo: motivoProblema.trim(),
@@ -878,7 +878,7 @@
             });
 
             fecharModal();
-            alert(`Prof. ${nomeSelecionado} adicionado com sucesso à sessão!`);
+            alert(`Colaborador. ${nomeSelecionado} adicionado com sucesso à sessão!`);
         }
 
         function confirmarDevolucao() {
@@ -941,7 +941,7 @@
                     let proximoChaveKey = restantesKeys[0];
                     let proximoNome = coocupantes[proximoChaveKey];
 
-                    if (confirm(`Atenção: O(A) Prof(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
+                    if (confirm(`Atenção: O(A) Colaborador(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
                         db.ref('ambientes/' + amb.id).update({
                             responsavel: proximoNome,
                             coocupantes: coocupantes
@@ -954,7 +954,7 @@
                     // SE QUEM ESTÁ SAINDO É UM CO-OCUPANTE (ex: o João continua na sala):
                     // Apenas removemos o co-ocupante. O responsável principal NÃO MUDA e a sala continua ocupada com o responsável principal original!
                     db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
-                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Prof(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
+                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Colaborador(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
                 }
 
                 // Registra o histórico da saída do participante
