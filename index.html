@@ -8,12 +8,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- BIBLIOTECA EMAILJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init("T166aalHYNsN3FYdo");
-        })();
-    </script>
+    
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+    (function() {
+        emailjs.init("T166aalHYNsN3FYdo");
+    })();
+</script>
+
 
     <style>
         :root {
@@ -769,12 +772,14 @@
                 data_hora: dataCompleta
             };
 
+           
             emailjs.send("service_zl2au3c", "template_l4h5se8", dadosEmail)
-                .then(function(response) {
-                    console.log("E-mail de solicitação enviado com sucesso!", response.status);
-                }, function(error) {
-                    console.error("Erro ao enviar e-mail de solicitação:", error);
-                });
+               .then(function(response) {
+                   console.log("E-mail de solicitação enviado com sucesso!", response.status);
+            }, function(error) {
+                   console.error("Erro ao enviar e-mail de solicitação:", error);
+            });
+
 
             fecharModal();
             alert('Chamado de manutenção enviado com sucesso! O ambiente continua operacional até a avaliação técnica.');
