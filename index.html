@@ -7,6 +7,14 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- BIBLIOTECA EMAILJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Inicialize o EmailJS com a sua Public Key real da conta EmailJS
+        (function() {
+            emailjs.init("T166aalHYNsN3FYdo");
+        })();
+    </script>
 
     <style>
         :root {
@@ -349,6 +357,8 @@
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
                 <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
+                <!-- BOTÃO DE SOLICITAÇÃO DE MANUTENÇÃO COM E-MAIL (NÃO BLOQUEIA A SALA) -->
+                <button class="btn" id="btn-solicitar-manutencao" style="width: 100%; margin-top: 5px; background-color: #0284c7;" onclick="solicitarManutencao()">✉️ Solicitar Manutenção (Reportar Problema)</button>
             </div>
 
             <!-- BLOCO DE RETIRADA INICIAL -->
@@ -567,7 +577,7 @@
 
                     let corTipo = 'var(--success)';
                     if (h.tipo === 'Retirada' || h.tipo === 'Saída da Sessão') corTipo = 'var(--danger)';
-                    if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação') corTipo = 'var(--warning)';
+                    if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação' || h.tipo === 'Solicitação de Manutenção') corTipo = 'var(--warning)';
 
                     tbody.innerHTML += `
                         <tr>
@@ -725,6 +735,51 @@
                 fecharModal();
                 alert('Ambiente colocado em manutenção.');
             }
+        }
+
+        // FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO (REPORTAR PROBLEMA SEM BLOQUEAR A SALA)
+        function solicitarManutencao() {
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            
+            let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
+            if (!solicitante || solicitante.trim() === "") return;
+
+            let motivoProblema = prompt("Descreva detalhadamente o problema ou motivo da manutenção:");
+            if (!motivoProblema || motivoProblema.trim() === "") {
+                alert("É obrigatório informar o motivo da solicitação de manutenção.");
+                return;
+            }
+
+            const dataCompleta = new Date().toLocaleString();
+
+            // 1. Registra o chamado no histórico geral (NÃO altera o status do laboratório, mantendo o uso normal)
+            db.ref('historico').push({
+                ambiente: amb.nome,
+                responsavel: solicitante.trim(),
+                tipo: 'Solicitação de Manutenção',
+                dataHora: dataCompleta,
+                observacoes: 'Problema relatado: ' + motivoProblema.trim()
+            });
+
+            // 2. Dispara o e-mail automático para o supervisor (Romário) via EmailJS
+            let dadosEmail = {
+                to_email: "saulo.lopes@gmail.com",
+                ambiente: amb.nome,
+                solicitante: solicitante.trim(),
+                motivo: motivoProblema.trim(),
+                data_hora: dataCompleta
+            };
+
+
+            emailjs.send("service_zl2au3c", "template_l4h5se8", dadosEmail)
+                .then(function(response) {
+                    console.log("E-mail de solicitação enviado com sucesso!", response.status);
+                }, function(error) {
+                    console.error("Erro ao enviar e-mail de solicitação:", error);
+                });
+
+            fecharModal();
+            alert('Chamado de manutenção enviado para Romário com sucesso! O ambiente continua operacional até a avaliação técnica.');
         }
 
         function fecharModal() {
