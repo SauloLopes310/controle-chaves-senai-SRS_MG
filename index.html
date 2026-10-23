@@ -740,48 +740,55 @@
         }
 
         // FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO (REPORTAR PROBLEMA SEM BLOQUEAR A SALA)
-       function solicitarManutencao() {
-    const amb = ambientes.find(a => a.id === ambienteAtualId);
-    
-    let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
-    if (!solicitante || solicitante.trim() === "") return;
+      
 
-    let motivoProblema = prompt("Descreva detalhadamente o problema ou motivo da manutenção:");
-    if (!motivoProblema || motivoProblema.trim() === "") {
-        alert("É obrigatório informar o motivo da solicitação de manutenção.");
-        return;
-    }
+// FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO ATUALIZADA
+        function solicitarManutencao() {
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            
+            let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
+            if (!solicitante || solicitante.trim() === "") return;
 
-    const dataCompleta = new Date().toLocaleString();
+            let motivoProblema = prompt("Descreva detalhadamente o problema ou motivo da manutenção:");
+            if (!motivoProblema || motivoProblema.trim() === "") {
+                alert("É obrigatório informar o motivo da solicitação de manutenção.");
+                return;
+            }
 
-    // 1. Registra no Firebase
-    db.ref('historico').push({
-        ambiente: amb.nome,
-        responsavel: solicitante.trim(),
-        tipo: 'Solicitação de Manutenção',
-        dataHora: dataCompleta,
-        observacoes: 'Problema relatado: ' + motivoProblema.trim()
-    });
+            const dataCompleta = new Date().toLocaleString();
 
-    // 2. Dispara o e-mail via EmailJS
-    let dadosEmail = {
-        to_email: "saulo.lopes7@gmail.com",
-        ambiente: amb.nome,
-        solicitante: solicitante.trim(),
-        motivo: motivoProblema.trim(),
-        data_hora: dataCompleta
-    };
+            // 1. Registra o chamado no histórico do Firebase
+            db.ref('historico').push({
+                ambiente: amb.nome,
+                responsavel: solicitante.trim(),
+                tipo: 'Solicitação de Manutenção',
+                dataHora: dataCompleta,
+                observacoes: 'Problema relatado: ' + motivoProblema.trim()
+            });
 
-    emailjs.send("service_zl2au3c", "template_l4h5se8", dadosEmail)
-        .then(function(response) {
-            console.log("E-mail enviado com sucesso!", response.status);
-        }, function(error) {
-            console.error("Erro ao enviar e-mail:", error);
-        });
+            // 2. Dispara o e-mail via EmailJS com tratamento explícito de erro
+            let templateParams = {
+                to_email: "saulo.lopes7@gmail.com",
+                ambiente: amb.nome,
+                solicitante: solicitante.trim(),
+                motivo: motivoProblema.trim(),
+                data_hora: dataCompleta
+            };
 
-    fecharModal();
-    alert('Chamado de manutenção enviado com sucesso!');
-}
+            emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
+                .then(function(response) {
+                    console.log("SUCCESS!", response.status, response.text);
+                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso!');
+                }, function(error) {
+                    console.log("FAILED...", error);
+                    alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
+                });
+
+            fecharModal();
+        }
+
+
+
         function fecharModal() {
             document.getElementById('modal-acao').style.display = 'none';
         }
