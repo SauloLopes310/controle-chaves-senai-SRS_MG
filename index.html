@@ -370,11 +370,20 @@
     </div>
 
     <!-- Menu Lateral Retrátil de Cadastros -->
+
+
     <div id="sidebar-admin" class="sidebar">
         <div class="sidebar-header">
             <h3>Painel de Gestão</h3>
             <button class="btn-fechar-sidebar" onclick="toggleSidebar()">✕</button>
         </div>
+
+<!-- PAINEL DE VISUALIZAÇÃO DO TOLKEN ATUAL -->
+<div class="painel-admin" style="background: #e0f2fe; border-color: #bae6fd;">
+    <strong style="color: #0369a1;">🔑 Código TOLKEN Ativo</strong>
+    <div id="token-display-admin" style="font-size: 20px; font-weight: bold; color: #0284c7; text-align: center; letter-spacing: 3px; margin: 5px 0;">--</div>
+    <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">Código atual para validação presencial na retirada/devolução.</p>
+</div>
 
         <div class="painel-admin">
             <strong>➕ Novo Ambiente</strong>
@@ -492,9 +501,15 @@
         let ambienteAtualId = null;
         let tokenGlobalDoBanco = "";
 
-        db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
-            tokenGlobalDoBanco = snapshot.val() || "";
-        });
+      
+db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
+    tokenGlobalDoBanco = snapshot.val() || "";
+    const tokenElement = document.getElementById('token-display-admin');
+    if (tokenElement) {
+        tokenElement.textContent = tokenGlobalDoBanco || "N/A";
+    }
+});
+
 
         db.ref('usuarios').on('value', (snapshot) => {
             const data = snapshot.val();
