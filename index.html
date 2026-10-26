@@ -921,14 +921,17 @@
                 data_hora: dataCompleta
             };
 
-            emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
-                .then(function(response) {
-                    console.log("SUCCESS!", response.status, response.text);
-                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
-                }, function(error) {
-                    console.log("FAILED...", error);
-                    alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
-                });
+           
+emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
+    .then(function(response) {
+        console.log("SUCCESS!", response.status, response.text);
+        alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
+    }, function(error) {
+        console.log("FAILED...", error);
+        alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
+    });
+
+
 
             fecharModal();
         }
