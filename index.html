@@ -335,7 +335,7 @@
 
         <!-- BARRA DE FILTROS DO HISTÓRICO -->
         <div class="filtros-box">
-            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisar em tudo (Ex: por data: xx/xx/xxx ...)" onkeyup="aplicarFiltros()">
+            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisar em tudo..." onkeyup="aplicarFiltros()">
             <select id="filtro-ambiente" onchange="aplicarFiltros()">
                 <option value="">Filtrar por Ambiente...</option>
             </select>
@@ -730,7 +730,7 @@
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
-                info.textContent = "Informe seus dados (Nome e Senha) e o código "TOLKEN" de 2 letras exibido na tela do quadro para retirar a chave.";
+                info.textContent = "Informe seus dados nome e senha e o código TOLKEN de 2 letras exibido na tela do quadro para retirar a chave.";
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
@@ -740,7 +740,7 @@
                 blocoCoocupar.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
-                info.textContent = `Ambiente em uso. Selecione o docente que está saindo (apenas participantes ativos):`;
+                info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo (apenas participantes ativos):`;
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
@@ -889,7 +889,7 @@
             }
 
             if (tokenDigitado !== tokenGlobalDoBanco) {
-                alert('Código presencial de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
+                alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
                 return;
             }
 
@@ -980,7 +980,7 @@
 
             const usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta para o docente selecionado!');
+                alert('Senha incorreta para o colaborador selecionado!');
                 return;
             }
 
@@ -989,7 +989,7 @@
 
             if (restantesKeysTemp.length === 0) {
                 if (tokenDigitado !== tokenGlobalDoBanco) {
-                    alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
+                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
                     return;
                 }
             }
