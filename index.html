@@ -11,7 +11,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-        emailjs.init("KwxdUFHl39Wo3mFZv"); // Substitua pela copiada se houver divergência
+        emailjs.init("KwxdUFHI39Wo3mFZv"); // Substitua pela copiada se houver divergência
 
         })();
     </script>
@@ -926,15 +926,19 @@
                 data_hora: dataCompleta
             };
 
-            emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
-                .then(function(response) {
-                    console.log("SUCCESS!", response.status, response.text);
-                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
-                }, function(error) {
-                    console.log("FAILED...", error);
-                    alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
-                });
 
+emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
+    .then(function(response) {
+        console.log("SUCCESS!", response.status, response.text);
+        alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
+    }, function(error) {
+        console.log("FAILED...", error);
+        alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
+    });
+
+
+
+            
             fecharModal();
         }
 
