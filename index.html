@@ -326,7 +326,14 @@
 
         <div class="section-header">
             <div class="section-title">Histórico de Movimentações Recentes</div>
-            <div class="relatorio-btns">
+            <div class="relatorio-btns" style="display: flex; align-items: center; gap: 10px;">
+                <label style="font-size: 11px; font-weight: 600; color: #64748b;"> Quantidade de ocorrenicas na visualização, mostrar:</label>
+                <select id="limite-paginacao" onchange="aplicarFiltros()" style="padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; background: white;">
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="todos">Todos</option>
+                </select>
                 <button class="btn-relatorio" onclick="baixarTXT()">📥 Baixar TXT</button>
                 <button class="btn-relatorio btn-pdf" onclick="gerarPDF()">🖨️ Imprimir / Salvar PDF</button>
             </div>
@@ -334,7 +341,7 @@
 
         <!-- BARRA DE FILTROS DO HISTÓRICO -->
         <div class="filtros-box">
-            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisar em tudo..." onkeyup="aplicarFiltros()">
+            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisa geral ou Filtrar por data xx/xx/xxxx..." onkeyup="aplicarFiltros()">
             <select id="filtro-ambiente" onchange="aplicarFiltros()">
                 <option value="">Filtrar por Ambiente...</option>
             </select>
@@ -703,6 +710,10 @@
             const ambFiltro = document.getElementById('filtro-ambiente').value;
             const respFiltro = document.getElementById('filtro-responsavel').value;
             const acaoFiltro = document.getElementById('filtro-acao').value;
+            const limiteSelect = document.getElementById('limite-paginacao');
+
+            // Se o elemento select existir, pega o valor dele; caso contrário, assume 25 por segurança
+            const limiteSelecionado = limiteSelect ? limiteSelect.value : "25";
 
             const tbody = document.getElementById('tabela-historico');
             tbody.innerHTML = '';
@@ -725,7 +736,11 @@
             if (historicoFiltrado.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação encontrada com os filtros aplicados.</td></tr>`;
             } else {
-                historicoFiltrado.forEach(h => {
+                // Define o limite de exibição com base na escolha do usuário (padrão de 25 se não especificado)
+                let limite = limiteSelecionado === 'todos' ? historicoFiltrado.length : (parseInt(limiteSelecionado) || 25);
+                let historicoPaginado = historicoFiltrado.slice(0, limite);
+
+                historicoPaginado.forEach(h => {
                     let htmlAnexo = '-';
                     if (h.arquivoData && h.arquivoNome) {
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
@@ -891,9 +906,7 @@
             }
         }
 
-     
-
-function solicitarManutencao() {
+        function solicitarManutencao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             
             let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
@@ -937,8 +950,6 @@ function solicitarManutencao() {
 
             fecharModal();
         }
-
-
 
         function fecharModal() {
             document.getElementById('modal-acao').style.display = 'none';
