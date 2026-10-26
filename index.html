@@ -113,7 +113,6 @@
         .btn-pdf { background-color: #0284c7; }
         .btn-pdf:hover { background-color: #0369a1; }
 
-        /* Estilização da Barra de Filtros */
         .filtros-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -181,7 +180,7 @@
         .sidebar {
             position: fixed;
             top: 0; right: -400px;
-            width: 350px;
+            width: 380px;
             height: 100%;
             background: white;
             box-shadow: -5px 0 25px rgba(0,0,0,0.15);
@@ -376,8 +375,15 @@
             <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
         </div>
 
+        <!-- NOVO: PAINEL DE ORDENAÇÃO DE AMBIENTES -->
         <div class="painel-admin">
-            <strong>👤 Novo Responsável</strong>
+            <strong>↕️ Organizar Posição dos Ambientes</strong>
+            <p style="font-size: 11px; color: #64748b; margin: 0 0 5px 0;">Use as setas para subir ou descer a posição na tela principal:</p>
+            <div id="lista-ordenacao" style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <div class="painel-admin">
+            <strong>👤 Novo Colaborador</strong>
             <input type="text" id="novo-usuario" placeholder="Nome do Colaborador...">
             <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
             <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
@@ -393,7 +399,6 @@
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
                 <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
-                <!-- BOTÃO DE SOLICITAÇÃO DE MANUTENÇÃO COM E-MAIL (NÃO BLOQUEIA A SALA) -->
                 <button class="btn" id="btn-solicitar-manutencao" style="width: 100%; margin-top: 5px; background-color: #0284c7;" onclick="solicitarManutencao()">✉️ Solicitar Manutenção (Reportar Problema)</button>
             </div>
 
@@ -405,7 +410,7 @@
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
                 <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
                 <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
@@ -439,7 +444,7 @@
                 <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
                 <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
@@ -498,6 +503,13 @@
             const data = snapshot.val();
             if (data) {
                 ambientes = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                // Ordena pelo campo 'ordem'. Se não tiver, joga para o fim
+                ambientes.sort((a, b) => {
+                    let ordemA = a.ordem !== undefined ? a.ordem : 999;
+                    let ordemB = b.ordem !== undefined ? b.ordem : 999;
+                    if (ordemA !== ordemB) return ordemA - ordemB;
+                    return a.nome.localeCompare(b.nome);
+                });
             }
             renderizar();
         });
@@ -525,16 +537,16 @@
             usuariosIniciais.forEach(u => db.ref('usuarios').push(u));
 
             const ambientesIniciais = [
-                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '' },
-                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
+                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '', ordem: 1 },
+                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '', ordem: 2 },
+                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '', ordem: 3 },
+                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '', ordem: 4 },
+                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '', ordem: 5 },
+                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '', ordem: 6 },
+                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '', ordem: 7 },
+                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '', ordem: 8 },
+                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '', ordem: 9 },
+                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '', ordem: 10 }
             ];
             ambientesIniciais.forEach(a => db.ref('ambientes').push(a));
         }
@@ -550,6 +562,60 @@
 
         function toggleSidebar() {
             document.getElementById('sidebar-admin').classList.toggle('ativo');
+        }
+
+        // Função para alterar a ordem no Firebase (Subir ou Descer)
+        function moverAmbiente(index, direcao) {
+            let novoIndex = index + direcao;
+            if (novoIndex < 0 || novoIndex >= ambientes.length) return;
+
+            // Troca a ordem dos dois no array localmente para inverter
+            let temp = ambientes[index];
+            ambientes[index] = ambientes[novoIndex];
+            ambientes[novoIndex] = temp;
+
+            // Atualiza o campo 'ordem' de todos no Firebase com base na nova posição do array
+            ambientes.forEach((amb, i) => {
+                db.ref('ambientes/' + amb.id).update({ ordem: i + 1 });
+            });
+        }
+
+        function renderizarListaOrdenacao() {
+            const containerLista = document.getElementById('lista-ordenacao');
+            if (!containerLista) return;
+            containerLista.innerHTML = '';
+
+            ambientes.forEach((amb, index) => {
+                let item = document.createElement('div');
+                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: white; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;";
+                
+                let nomeSpan = document.createElement('span');
+                nomeSpan.textContent = `${index + 1}. ${amb.nome}`;
+                nomeSpan.style.fontWeight = "600";
+
+                let botoesDiv = document.createElement('div');
+                botoesDiv.style.display = "flex";
+                botoesDiv.style.gap = "4px";
+
+                let btnSubir = document.createElement('button');
+                btnSubir.className = "btn";
+                btnSubir.style.padding = "2px 6px";
+                btnSubir.textContent = "⬆️";
+                btnSubir.onclick = () => moverAmbiente(index, -1);
+
+                let btnDescer = document.createElement('button');
+                btnDescer.className = "btn";
+                btnDescer.style.padding = "2px 6px";
+                btnDescer.textContent = "⬇️";
+                btnDescer.onclick = () => moverAmbiente(index, 1);
+
+                botoesDiv.appendChild(btnSubir);
+                botoesDiv.appendChild(btnDescer);
+
+                item.appendChild(nomeSpan);
+                item.appendChild(botoesDiv);
+                containerLista.appendChild(item);
+            });
         }
 
         function atualizarOpcoesFiltros() {
@@ -632,6 +698,7 @@
             });
 
             popularSelectsRetiradaECoocupacao();
+            renderizarListaOrdenacao();
             aplicarFiltros();
         }
 
@@ -768,8 +835,8 @@
         }
 
         function alternarManutencao() {
-            const senhaManutencao = prompt("Digite a senha de manutenção (#Manutencao) para alterar o status:");
-            if (senhaManutencao !== "#Manutencao") {
+            const senhaManutencao = prompt("Digite a senha de manutenção (#manutencao) para alterar o status:");
+            if (senhaManutencao !== "#manutencao") {
                 if (senhaManutencao !== null) alert("Senha de manutenção incorreta!");
                 return;
             }
@@ -1103,7 +1170,8 @@
         function adicionarAmbiente() {
             const nome = document.getElementById('novo-ambiente').value.trim();
             if (nome) {
-                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '' });
+                let novaOrdem = ambientes.length + 1;
+                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '', ordem: novaOrdem });
                 document.getElementById('novo-ambiente').value = '';
                 alert(`Ambiente "${nome}" cadastrado!`);
             } else {
@@ -1123,7 +1191,7 @@
                 db.ref('usuarios').push({ nome: nome, senha: senha });
                 document.getElementById('novo-usuario').value = '';
                 document.getElementById('nova-senha').value = '';
-                alert(`Responsável "${nome}" cadastrado!`);
+                alert(`Colaborador "${nome}" cadastrado!`);
             } else {
                 alert('Preencha nome e senha.');
             }
