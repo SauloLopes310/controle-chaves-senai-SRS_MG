@@ -8,17 +8,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- BIBLIOTECA EMAILJS -->
-    
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script type="text/javascript">
-    (function() {
-        //emailjs.init("T166aalHYNsN3FYdo");
- emailjs.init("T166aaIHYNsN3FYdo");
-
-    })();
-</script>
-
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("T166aalHYNsN3FYdo");
+        })();
+    </script>
 
     <style>
         :root {
@@ -117,6 +112,29 @@
         .btn-relatorio:hover { background-color: #475569; }
         .btn-pdf { background-color: #0284c7; }
         .btn-pdf:hover { background-color: #0369a1; }
+
+        /* Estilização da Barra de Filtros */
+        .filtros-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .filtros-box input, .filtros-box select {
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            background: white;
+        }
 
         .chaves-grid {
             display: grid;
@@ -283,7 +301,7 @@
         }
 
         @media print {
-            header, .btn-admin-toggle, .relatorio-btns, footer, .chaves-grid, .section-title:first-of-type {
+            header, .btn-admin-toggle, .relatorio-btns, .filtros-box, footer, .chaves-grid, .section-title:first-of-type {
                 display: none !important;
             }
             body { background: white; }
@@ -313,6 +331,20 @@
                 <button class="btn-relatorio" onclick="baixarTXT()">📥 Baixar TXT</button>
                 <button class="btn-relatorio btn-pdf" onclick="gerarPDF()">🖨️ Imprimir / Salvar PDF</button>
             </div>
+        </div>
+
+        <!-- BARRA DE FILTROS DO HISTÓRICO -->
+        <div class="filtros-box">
+            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisar em tudo (Ex: por data: xx/xx/xxx ...)" onkeyup="aplicarFiltros()">
+            <select id="filtro-ambiente" onchange="aplicarFiltros()">
+                <option value="">Filtrar por Ambiente...</option>
+            </select>
+            <select id="filtro-responsavel" onchange="aplicarFiltros()">
+                <option value="">Filtrar por Responsável...</option>
+            </select>
+            <select id="filtro-acao" onchange="aplicarFiltros()">
+                <option value="">Filtrar por Ação...</option>
+            </select>
         </div>
 
         <div style="overflow-x: auto;">
@@ -371,7 +403,7 @@
                 <select id="select-responsavel-retirada"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-retirada" placeholder="Senha do docente">
+                <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
                 
                 <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
                 <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
@@ -391,7 +423,7 @@
                 <select id="select-responsavel-coocupar"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-coocupar" placeholder="Senha do docente">
+                <input type="password" id="input-senha-coocupar" placeholder="Senha do colaborador">
 
                 <label style="font-size: 12px; font-weight: bold;">Turma / Projeto / Motivo:</label>
                 <textarea id="input-obs-coocupar" placeholder="Ex: Projeto Integrador / Pesquisa IoT..."></textarea>
@@ -404,7 +436,7 @@
                 <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
                 <select id="select-responsavel-devolucao"></select>
                 
-                <label style="font-size: 12px; font-weight: bold;">Senha do Docente:</label>
+                <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
                 <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
@@ -477,6 +509,7 @@
             } else {
                 historico = [];
             }
+            atualizarOpcoesFiltros();
             renderizar();
         });
 
@@ -517,6 +550,38 @@
 
         function toggleSidebar() {
             document.getElementById('sidebar-admin').classList.toggle('ativo');
+        }
+
+        function atualizarOpcoesFiltros() {
+            const selectAmb = document.getElementById('filtro-ambiente');
+            const selectResp = document.getElementById('filtro-responsavel');
+            const selectAcao = document.getElementById('filtro-acao');
+
+            const ambAtual = selectAmb.value;
+            const respAtual = selectResp.value;
+            const acaoAtual = selectAcao.value;
+
+            selectAmb.innerHTML = '<option value="">Filtrar por Ambiente...</option>';
+            selectResp.innerHTML = '<option value="">Filtrar por Responsável...</option>';
+            selectAcao.innerHTML = '<option value="">Filtrar por Ação...</option>';
+
+            let ambientesUnicos = [...new Set(historico.map(h => h.ambiente))].sort();
+            let responsaveisUnicos = [...new Set(historico.map(h => h.responsavel))].sort();
+            let acoesUnicas = [...new Set(historico.map(h => h.tipo))].sort();
+
+            ambientesUnicos.forEach(a => {
+                selectAmb.innerHTML += `<option value="${a}">${a}</option>`;
+            });
+            responsaveisUnicos.forEach(r => {
+                selectResp.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+            acoesUnicas.forEach(ac => {
+                selectAcao.innerHTML += `<option value="${ac}">${ac}</option>`;
+            });
+
+            selectAmb.value = ambAtual;
+            selectResp.value = respAtual;
+            selectAcao.value = acaoAtual;
         }
 
         function renderizar() {
@@ -567,13 +632,37 @@
             });
 
             popularSelectsRetiradaECoocupacao();
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const textoFiltro = document.getElementById('filtro-texto').value.toLowerCase();
+            const ambFiltro = document.getElementById('filtro-ambiente').value;
+            const respFiltro = document.getElementById('filtro-responsavel').value;
+            const acaoFiltro = document.getElementById('filtro-acao').value;
 
             const tbody = document.getElementById('tabela-historico');
             tbody.innerHTML = '';
-            if (historico.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada.</td></tr>`;
+
+            let historicoFiltrado = historico.filter(h => {
+                let matchTexto = textoFiltro === "" || 
+                    (h.ambiente && h.ambiente.toLowerCase().includes(textoFiltro)) ||
+                    (h.responsavel && h.responsavel.toLowerCase().includes(textoFiltro)) ||
+                    (h.tipo && h.tipo.toLowerCase().includes(textoFiltro)) ||
+                    (h.dataHora && h.dataHora.toLowerCase().includes(textoFiltro)) ||
+                    (h.observacoes && h.observacoes.toLowerCase().includes(textoFiltro));
+
+                let matchAmb = ambFiltro === "" || h.ambiente === ambFiltro;
+                let matchResp = respFiltro === "" || h.responsavel === respFiltro;
+                let matchAcao = acaoFiltro === "" || h.tipo === acaoFiltro;
+
+                return matchTexto && matchAmb && matchResp && matchAcao;
+            });
+
+            if (historicoFiltrado.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação encontrada com os filtros aplicados.</td></tr>`;
             } else {
-                historico.forEach(h => {
+                historicoFiltrado.forEach(h => {
                     let htmlAnexo = '-';
                     if (h.arquivoData && h.arquivoNome) {
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
@@ -628,7 +717,6 @@
             const btnManutencao = document.getElementById('btn-toggle-manutencao');
             const info = document.getElementById('modal-info');
 
-            // Limpa campos
             document.querySelectorAll('.modal-content input[type="password"], .modal-content input[type="text"], .modal-content textarea').forEach(el => el.value = '');
             document.querySelectorAll('.modal-content input[type="file"]').forEach(el => el.value = '');
 
@@ -642,7 +730,7 @@
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
-                info.textContent = "Informe seus dados e o código de 2 letras exibido na tela do quadro para retirar a chave.";
+                info.textContent = "Informe seus dados (Nome e Senha) e o código "TOLKEN" de 2 letras exibido na tela do quadro para retirar a chave.";
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
@@ -657,7 +745,6 @@
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
 
-                // SEGURANÇA: Popula o select de devolução APENAS com quem está na sala
                 const selectDev = document.getElementById('select-responsavel-devolucao');
                 selectDev.innerHTML = '';
                 
@@ -741,10 +828,6 @@
             }
         }
 
-        // FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO (REPORTAR PROBLEMA SEM BLOQUEAR A SALA)
-      
-
-// FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO ATUALIZADA
         function solicitarManutencao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             
@@ -759,7 +842,6 @@
 
             const dataCompleta = new Date().toLocaleString();
 
-            // 1. Registra o chamado no histórico do Firebase
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: solicitante.trim(),
@@ -768,9 +850,8 @@
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            // 2. Dispara o e-mail via EmailJS com tratamento explícito de erro
             let templateParams = {
-                to_email: "saulo.lopes7@gmail.com",
+                to_email: "romario.carlos@fiemg.com.br",
                 ambiente: amb.nome,
                 solicitante: solicitante.trim(),
                 motivo: motivoProblema.trim(),
@@ -780,7 +861,7 @@
             emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
                 .then(function(response) {
                     console.log("SUCCESS!", response.status, response.text);
-                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso!');
+                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
                 }, function(error) {
                     console.log("FAILED...", error);
                     alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
@@ -889,7 +970,6 @@
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
 
-            // Validação de segurança: Verifica se o usuário realmente está na sessão
             let coocupantes = amb.coocupantes || {};
             let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
             
@@ -907,7 +987,6 @@
             let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
             let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
 
-            // Se for o último saindo, exige o token físico do quadro de chaves
             if (restantesKeysTemp.length === 0) {
                 if (tokenDigitado !== tokenGlobalDoBanco) {
                     alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
@@ -935,9 +1014,7 @@
             const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
 
             if (restantesKeys.length > 0) {
-                // AINDA EXISTEM PESSOAS NA SALA
                 if (eraOResponsavelPrincipal) {
-                    // Se o principal está saindo mas há co-ocupantes, perguntamos se quer transferir a responsabilidade principal
                     let proximoChaveKey = restantesKeys[0];
                     let proximoNome = coocupantes[proximoChaveKey];
 
@@ -948,16 +1025,13 @@
                         });
                         alert(`Custódia principal transferida com sucesso para ${proximoNome}!`);
                     } else {
-                        return; // Cancela a saída se o principal não quiser transferir
+                        return;
                     }
                 } else {
-                    // SE QUEM ESTÁ SAINDO É UM CO-OCUPANTE (ex: o João continua na sala):
-                    // Apenas removemos o co-ocupante. O responsável principal NÃO MUDA e a sala continua ocupada com o responsável principal original!
                     db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
                     alert(`Saída de ${responsavelSaindo} registrada. O(A) Colaborador(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
                 }
 
-                // Registra o histórico da saída do participante
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
@@ -970,7 +1044,6 @@
 
                 fecharModal();
             } else {
-                // NÃO HÁ MAIS NINGUÉM NA SALA: Devolve a chave de vez para a portaria
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
                     responsavel: '',
