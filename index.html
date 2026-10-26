@@ -8,12 +8,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- BIBLIOTECA EMAILJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init("KwxdUFHI39Wo3mFZv");
-        })();
-    </script>
+    
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+    (function() {
+        emailjs.init("KwxdUFHl39Wo3mFZv");
+    })();
+</script>
 
     <style>
         :root {
@@ -113,28 +114,6 @@
         .btn-pdf { background-color: #0284c7; }
         .btn-pdf:hover { background-color: #0369a1; }
 
-        .filtros-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-
-        .filtros-box input, .filtros-box select {
-            padding: 8px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 12px;
-            width: 100%;
-            box-sizing: border-box;
-            background: white;
-        }
-
         .chaves-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -180,7 +159,7 @@
         .sidebar {
             position: fixed;
             top: 0; right: -400px;
-            width: 380px;
+            width: 350px;
             height: 100%;
             background: white;
             box-shadow: -5px 0 25px rgba(0,0,0,0.15);
@@ -300,7 +279,7 @@
         }
 
         @media print {
-            header, .btn-admin-toggle, .relatorio-btns, .filtros-box, footer, .chaves-grid, .section-title:first-of-type {
+            header, .btn-admin-toggle, .relatorio-btns, footer, .chaves-grid, .section-title:first-of-type {
                 display: none !important;
             }
             body { background: white; }
@@ -332,20 +311,6 @@
             </div>
         </div>
 
-        <!-- BARRA DE FILTROS DO HISTÓRICO -->
-        <div class="filtros-box">
-            <input type="text" id="filtro-texto" placeholder="🔍 Pesquisar em tudo..." onkeyup="aplicarFiltros()">
-            <select id="filtro-ambiente" onchange="aplicarFiltros()">
-                <option value="">Filtrar por Ambiente...</option>
-            </select>
-            <select id="filtro-responsavel" onchange="aplicarFiltros()">
-                <option value="">Filtrar por Responsável...</option>
-            </select>
-            <select id="filtro-acao" onchange="aplicarFiltros()">
-                <option value="">Filtrar por Ação...</option>
-            </select>
-        </div>
-
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -375,16 +340,9 @@
             <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
         </div>
 
-        <!-- PAINEL DE ORDENAÇÃO DE AMBIENTES -->
         <div class="painel-admin">
-            <strong>↕️ Organizar Posição dos Ambientes</strong>
-            <p style="font-size: 11px; color: #64748b; margin: 0 0 5px 0;">Use as setas para subir ou descer a posição na tela principal:</p>
-            <div id="lista-ordenacao" style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
-        </div>
-
-        <div class="painel-admin">
-            <strong>👤 Novo Colaborador</strong>
-            <input type="text" id="novo-usuario" placeholder="Nome do Colaborador...">
+            <strong>👤 Novo Responsável</strong>
+            <input type="text" id="novo-usuario" placeholder="Nome do Professor...">
             <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
             <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
         </div>
@@ -399,6 +357,7 @@
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
                 <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
+                <!-- BOTÃO DE SOLICITAÇÃO DE MANUTENÇÃO COM E-MAIL (NÃO BLOQUEIA A SALA) -->
                 <button class="btn" id="btn-solicitar-manutencao" style="width: 100%; margin-top: 5px; background-color: #0284c7;" onclick="solicitarManutencao()">✉️ Solicitar Manutenção (Reportar Problema)</button>
             </div>
 
@@ -408,9 +367,9 @@
                 <select id="select-responsavel-retirada"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
+                <input type="password" id="input-senha-retirada" placeholder="Senha do docente">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras):</label>
                 <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
@@ -424,11 +383,11 @@
 
             <!-- BLOCO DE CO-OCUPAÇÃO (ENTRAR NA SESSÃO) -->
             <div id="bloco-coocupar" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Colaborador / Projeto):</label>
+                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Professor / Projeto):</label>
                 <select id="select-responsavel-coocupar"></select>
                 
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-coocupar" placeholder="Senha do colaborador">
+                <input type="password" id="input-senha-coocupar" placeholder="Senha do docente">
 
                 <label style="font-size: 12px; font-weight: bold;">Turma / Projeto / Motivo:</label>
                 <textarea id="input-obs-coocupar" placeholder="Ex: Projeto Integrador / Pesquisa IoT..."></textarea>
@@ -441,10 +400,10 @@
                 <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
                 <select id="select-responsavel-devolucao"></select>
                 
-                <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
+                <label style="font-size: 12px; font-weight: bold;">Senha do Docente:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
+                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial do Quadro (2 Letras) <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
                 <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
@@ -503,12 +462,6 @@
             const data = snapshot.val();
             if (data) {
                 ambientes = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                ambientes.sort((a, b) => {
-                    let ordemA = a.ordem !== undefined ? a.ordem : 999;
-                    let ordemB = b.ordem !== undefined ? b.ordem : 999;
-                    if (ordemA !== ordemB) return ordemA - ordemB;
-                    return a.nome.localeCompare(b.nome);
-                });
             }
             renderizar();
         });
@@ -520,7 +473,6 @@
             } else {
                 historico = [];
             }
-            atualizarOpcoesFiltros();
             renderizar();
         });
 
@@ -536,16 +488,16 @@
             usuariosIniciais.forEach(u => db.ref('usuarios').push(u));
 
             const ambientesIniciais = [
-                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '', ordem: 1 },
-                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '', ordem: 2 },
-                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '', ordem: 3 },
-                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '', ordem: 4 },
-                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '', ordem: 5 },
-                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '', ordem: 6 },
-                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '', ordem: 7 },
-                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '', ordem: 8 },
-                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '', ordem: 9 },
-                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '', ordem: 10 }
+                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '' },
+                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '' }
             ];
             ambientesIniciais.forEach(a => db.ref('ambientes').push(a));
         }
@@ -561,89 +513,6 @@
 
         function toggleSidebar() {
             document.getElementById('sidebar-admin').classList.toggle('ativo');
-        }
-
-        function moverAmbiente(index, direcao) {
-            let novoIndex = index + direcao;
-            if (novoIndex < 0 || novoIndex >= ambientes.length) return;
-
-            let temp = ambientes[index];
-            ambientes[index] = ambientes[novoIndex];
-            ambientes[novoIndex] = temp;
-
-            ambientes.forEach((amb, i) => {
-                db.ref('ambientes/' + amb.id).update({ ordem: i + 1 });
-            });
-        }
-
-        function renderizarListaOrdenacao() {
-            const containerLista = document.getElementById('lista-ordenacao');
-            if (!containerLista) return;
-            containerLista.innerHTML = '';
-
-            ambientes.forEach((amb, index) => {
-                let item = document.createElement('div');
-                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: white; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;";
-                
-                let nomeSpan = document.createElement('span');
-                nomeSpan.textContent = `${index + 1}. ${amb.nome}`;
-                nomeSpan.style.fontWeight = "600";
-
-                let botoesDiv = document.createElement('div');
-                botoesDiv.style.display = "flex";
-                botoesDiv.style.gap = "4px";
-
-                let btnSubir = document.createElement('button');
-                btnSubir.className = "btn";
-                btnSubir.style.padding = "2px 6px";
-                btnSubir.textContent = "⬆️";
-                btnSubir.onclick = () => moverAmbiente(index, -1);
-
-                let btnDescer = document.createElement('button');
-                btnDescer.className = "btn";
-                btnDescer.style.padding = "2px 6px";
-                btnDescer.textContent = "⬇️";
-                btnDescer.onclick = () => moverAmbiente(index, 1);
-
-                botoesDiv.appendChild(btnSubir);
-                botoesDiv.appendChild(btnDescer);
-
-                item.appendChild(nomeSpan);
-                item.appendChild(botoesDiv);
-                containerLista.appendChild(item);
-            });
-        }
-
-        function atualizarOpcoesFiltros() {
-            const selectAmb = document.getElementById('filtro-ambiente');
-            const selectResp = document.getElementById('filtro-responsavel');
-            const selectAcao = document.getElementById('filtro-acao');
-
-            const ambAtual = selectAmb.value;
-            const respAtual = selectResp.value;
-            const acaoAtual = selectAcao.value;
-
-            selectAmb.innerHTML = '<option value="">Filtrar por Ambiente...</option>';
-            selectResp.innerHTML = '<option value="">Filtrar por Responsável...</option>';
-            selectAcao.innerHTML = '<option value="">Filtrar por Ação...</option>';
-
-            let ambientesUnicos = [...new Set(historico.map(h => h.ambiente))].sort();
-            let responsaveisUnicos = [...new Set(historico.map(h => h.responsavel))].sort();
-            let acoesUnicas = [...new Set(historico.map(h => h.tipo))].sort();
-
-            ambientesUnicos.forEach(a => {
-                selectAmb.innerHTML += `<option value="${a}">${a}</option>`;
-            });
-            responsaveisUnicos.forEach(r => {
-                selectResp.innerHTML += `<option value="${r}">${r}</option>`;
-            });
-            acoesUnicas.forEach(ac => {
-                selectAcao.innerHTML += `<option value="${ac}">${ac}</option>`;
-            });
-
-            selectAmb.value = ambAtual;
-            selectResp.value = respAtual;
-            selectAcao.value = acaoAtual;
         }
 
         function renderizar() {
@@ -694,38 +563,13 @@
             });
 
             popularSelectsRetiradaECoocupacao();
-            renderizarListaOrdenacao();
-            aplicarFiltros();
-        }
-
-        function aplicarFiltros() {
-            const textoFiltro = document.getElementById('filtro-texto').value.toLowerCase();
-            const ambFiltro = document.getElementById('filtro-ambiente').value;
-            const respFiltro = document.getElementById('filtro-responsavel').value;
-            const acaoFiltro = document.getElementById('filtro-acao').value;
 
             const tbody = document.getElementById('tabela-historico');
             tbody.innerHTML = '';
-
-            let historicoFiltrado = historico.filter(h => {
-                let matchTexto = textoFiltro === "" || 
-                    (h.ambiente && h.ambiente.toLowerCase().includes(textoFiltro)) ||
-                    (h.responsavel && h.responsavel.toLowerCase().includes(textoFiltro)) ||
-                    (h.tipo && h.tipo.toLowerCase().includes(textoFiltro)) ||
-                    (h.dataHora && h.dataHora.toLowerCase().includes(textoFiltro)) ||
-                    (h.observacoes && h.observacoes.toLowerCase().includes(textoFiltro));
-
-                let matchAmb = ambFiltro === "" || h.ambiente === ambFiltro;
-                let matchResp = respFiltro === "" || h.responsavel === respFiltro;
-                let matchAcao = acaoFiltro === "" || h.tipo === acaoFiltro;
-
-                return matchTexto && matchAmb && matchResp && matchAcao;
-            });
-
-            if (historicoFiltrado.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação encontrada com os filtros aplicados.</td></tr>`;
+            if (historico.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação registrada.</td></tr>`;
             } else {
-                historicoFiltrado.forEach(h => {
+                historico.forEach(h => {
                     let htmlAnexo = '-';
                     if (h.arquivoData && h.arquivoNome) {
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
@@ -780,6 +624,7 @@
             const btnManutencao = document.getElementById('btn-toggle-manutencao');
             const info = document.getElementById('modal-info');
 
+            // Limpa campos
             document.querySelectorAll('.modal-content input[type="password"], .modal-content input[type="text"], .modal-content textarea').forEach(el => el.value = '');
             document.querySelectorAll('.modal-content input[type="file"]').forEach(el => el.value = '');
 
@@ -793,7 +638,7 @@
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
-                info.textContent = "Informe seus dados nome e senha e o código TOLKEN de 2 letras exibido na tela do quadro para retirar a chave.";
+                info.textContent = "Informe seus dados e o código de 2 letras exibido na tela do quadro para retirar a chave.";
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
@@ -803,11 +648,12 @@
                 blocoCoocupar.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
-                info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo (apenas participantes ativos):`;
+                info.textContent = `Ambiente em uso. Selecione o docente que está saindo (apenas participantes ativos):`;
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
 
+                // SEGURANÇA: Popula o select de devolução APENAS com quem está na sala
                 const selectDev = document.getElementById('select-responsavel-devolucao');
                 selectDev.innerHTML = '';
                 
@@ -891,6 +737,7 @@
             }
         }
 
+        // FUNÇÃO DE SOLICITAÇÃO DE MANUTENÇÃO (REPORTAR PROBLEMA SEM BLOQUEAR A SALA)
         function solicitarManutencao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             
@@ -905,6 +752,7 @@
 
             const dataCompleta = new Date().toLocaleString();
 
+            // 1. Registra o chamado no histórico geral (NÃO altera o status do laboratório, mantendo o uso normal)
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: solicitante.trim(),
@@ -913,27 +761,25 @@
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            let templateParams = {
-                to_email: "romario.carlos@fiemg.com.br",
-                ambiente: amb.nome,
-                solicitante: solicitante.trim(),
-                motivo: motivoProblema.trim(),
-                data_hora: dataCompleta
-            };
-
-           
-emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
-    .then(function(response) {
-        console.log("SUCCESS!", response.status, response.text);
-        alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
-    }, function(error) {
-        console.log("FAILED...", error);
-        alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
-    });
+            // 2. Dispara o e-mail automático para o supervisor (Romário) via EmailJS
+           let dadosEmail = {
+    to_email: "saulo.lopes7@gmail.com", // (ou o e-mail do Romário depois de validar)
+    ambiente: amb.nome,
+    solicitante: solicitante.trim(),
+    motivo: motivoProblema.trim(),
+    data_hora: dataCompleta
+};
 
 
+            emailjs.send("service_zl2au3c", "template_l4h5se8", dadosEmail)
+                .then(function(response) {
+                    console.log("E-mail de solicitação enviado com sucesso!", response.status);
+                }, function(error) {
+                    console.error("Erro ao enviar e-mail de solicitação:", error);
+                });
 
             fecharModal();
+            alert('Chamado de manutenção enviado para Romário com sucesso! O ambiente continua operacional até a avaliação técnica.');
         }
 
         function fecharModal() {
@@ -955,7 +801,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
             }
 
             if (tokenDigitado !== tokenGlobalDoBanco) {
-                alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
+                alert('Código presencial de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
                 return;
             }
 
@@ -1025,7 +871,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
             });
 
             fecharModal();
-            alert(`Colaborador. ${nomeSelecionado} adicionado com sucesso à sessão!`);
+            alert(`Prof. ${nomeSelecionado} adicionado com sucesso à sessão!`);
         }
 
         function confirmarDevolucao() {
@@ -1036,6 +882,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
 
+            // Validação de segurança: Verifica se o usuário realmente está na sessão
             let coocupantes = amb.coocupantes || {};
             let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
             
@@ -1046,16 +893,17 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
 
             const usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
             if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta para o colaborador selecionado!');
+                alert('Senha incorreta para o docente selecionado!');
                 return;
             }
 
             let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
             let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
 
+            // Se for o último saindo, exige o token físico do quadro de chaves
             if (restantesKeysTemp.length === 0) {
                 if (tokenDigitado !== tokenGlobalDoBanco) {
-                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
+                    alert('Código presencial de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
                     return;
                 }
             }
@@ -1080,24 +928,29 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
             const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
 
             if (restantesKeys.length > 0) {
+                // AINDA EXISTEM PESSOAS NA SALA
                 if (eraOResponsavelPrincipal) {
+                    // Se o principal está saindo mas há co-ocupantes, perguntamos se quer transferir a responsabilidade principal
                     let proximoChaveKey = restantesKeys[0];
                     let proximoNome = coocupantes[proximoChaveKey];
 
-                    if (confirm(`Atenção: O(A) Colaborador(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
+                    if (confirm(`Atenção: O(A) Prof(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
                         db.ref('ambientes/' + amb.id).update({
                             responsavel: proximoNome,
                             coocupantes: coocupantes
                         });
                         alert(`Custódia principal transferida com sucesso para ${proximoNome}!`);
                     } else {
-                        return;
+                        return; // Cancela a saída se o principal não quiser transferir
                     }
                 } else {
+                    // SE QUEM ESTÁ SAINDO É UM CO-OCUPANTE (ex: o João continua na sala):
+                    // Apenas removemos o co-ocupante. O responsável principal NÃO MUDA e a sala continua ocupada com o responsável principal original!
                     db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
-                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Colaborador(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
+                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Prof(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
                 }
 
+                // Registra o histórico da saída do participante
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
@@ -1110,6 +963,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
 
                 fecharModal();
             } else {
+                // NÃO HÁ MAIS NINGUÉM NA SALA: Devolve a chave de vez para a portaria
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
                     responsavel: '',
@@ -1169,8 +1023,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
         function adicionarAmbiente() {
             const nome = document.getElementById('novo-ambiente').value.trim();
             if (nome) {
-                let novaOrdem = ambientes.length + 1;
-                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '', ordem: novaOrdem });
+                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '' });
                 document.getElementById('novo-ambiente').value = '';
                 alert(`Ambiente "${nome}" cadastrado!`);
             } else {
@@ -1190,7 +1043,7 @@ emailjs.send("service_i3d7osq", "template_wsif6f4", templateParams)
                 db.ref('usuarios').push({ nome: nome, senha: senha });
                 document.getElementById('novo-usuario').value = '';
                 document.getElementById('nova-senha').value = '';
-                alert(`Colaborador "${nome}" cadastrado!`);
+                alert(`Responsável "${nome}" cadastrado!`);
             } else {
                 alert('Preencha nome e senha.');
             }
