@@ -7,6 +7,13 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- BIBLIOTECA EMAILJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("KwxdUFHl39Wo3mFZv");
+        })();
+    </script>
 
     <style>
         :root {
@@ -884,7 +891,9 @@
             }
         }
 
-        function solicitarManutencao() {
+     
+
+function solicitarManutencao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
             
             let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
@@ -907,25 +916,29 @@
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            // Abre o cliente de e-mail nativo preenchido automaticamente (sem chaves e sem erro 404!)
-            const emailDestino = "saulo.siqueira@fiemg.com.br";
-            const assunto = encodeURIComponent(`Solicitação de Manutenção - ${amb.nome}`);
-            const corpo = encodeURIComponent(
-                `Olá Romário,\n\n` +
-                `Foi registrada uma solicitação de manutenção para o seguinte ambiente:\n\n` +
-                `Ambiente: ${amb.nome}\n` +
-                `Solicitante: ${solicitante.trim()}\n` +
-                `Motivo do Problema: ${motivoProblema.trim()}\n` +
-                `Data e Hora: ${dataCompleta}\n\n` +
-                `Atenciosamente,\n` +
-                `Sistema de Controle de Chaves - SENAI SRS`
-            );
+            // Parâmetros exatos correspondentes ao template do EmailJS
+            let templateParams = {
+                to_email: "romario.carlos@fiemg.com.br",
+                ambiente: amb.nome,
+                solicitante: solicitante.trim(),
+                motivo: motivoProblema.trim(),
+                data_hora: dataCompleta
+            };
 
-            window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
+            // Disparo via EmailJS com o Service ID e Template ID corretos
+            emailjs.send("service_zl2au3c", "template_wsif6f4", templateParams)
+                .then(function(response) {
+                    console.log("SUCCESS!", response.status, response.text);
+                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
+                }, function(error) {
+                    console.log("FAILED...", error);
+                    alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
+                });
 
             fecharModal();
-            alert('Chamado salvo no sistema e cliente de e-mail aberto para envio!');
         }
+
+
 
         function fecharModal() {
             document.getElementById('modal-acao').style.display = 'none';
