@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENAI QUIZ SRS 4.0 - Portal Central</title>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;       
+            --card-dark: #1e293b;     
+            --text-main: #f8fafc;     
+            --text-muted: #94a3b8;    
+            --primary-blue: #3b82f6;  
+            --neon-green: #10b981;
+            --amber: #f59e0b;
+            --purple: #a855f7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .header-portal {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 600px;
+            position: relative;
+            width: 100%;
+        }
+
+        .header-portal h1 {
+            color: var(--primary-blue);
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .header-portal p {
+            color: var(--text-muted);
+            margin: 10px 0 0 0;
+            font-size: 16px;
+        }
+
+        /* Botão de Help no topo direito */
+        .btn-help {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #334155;
+            border: 1px solid #475569;
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-help:hover {
+            background-color: var(--primary-blue);
+            border-color: #60a5fa;
+            transform: scale(1.05);
+        }
+
+        .grid-portal {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 50px;
+        }
+
+        @media (max-width: 600px) {
+            .grid-portal {
+                grid-template-columns: 1fr;
+            }
+            .btn-help {
+                position: static;
+                margin-top: 15px;
+                display: inline-flex;
+            }
+        }
+
+        .card-link {
+            background-color: var(--card-dark);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+            border-color: var(--primary-blue);
+        }
+
+        .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .card-link h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+
+        .card-link p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .aluno:hover { border-color: var(--neon-green); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2); }
+        .dashboard:hover { border-color: var(--amber); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2); }
+        .docente:hover { border-color: var(--primary-blue); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2); }
+        .gestor:hover { border-color: var(--purple); box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2); }
+
+        /* Estilização do Novo Rodapé */
+        .footer-credits {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid #334155;
+            padding-top: 20px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: auto;
+        }
+
+        .footer-credits strong {
+            color: var(--primary-blue);
+        }
+
+        .footer-credits a {
+            color: var(--neon-green);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Estilização da Tela de Help (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--card-dark);
+            border: 1px solid #475569;
+            border-radius: 16px;
+            max-width: 550px;
+            width: 90%;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--amber);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .btn-close-modal:hover {
+            color: #ef4444;
+        }
+
+        .help-item {
+            margin-bottom: 20px;
+        }
+
+        .help-item strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .help-item p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-portal">
+        <h1>SENAI QUIZ SRS MG</h1>
+
+<p><h2>UM PASSO PARA CONEXÃO 4.0!!!</h2></p>
+
+
+
+
+<p></p>
+
+        <p>Hub Central de Competição e Monitoramento de Leads</p>
+        <button class="btn-help" onclick="toggleHelp(true)">💡 Guia de Ajuda</button>
+    </div>
+
+    <div class="grid-portal">
+        <a href="index.html" class="card-link aluno">
+            <div class="icon">🎮</div>
+            <h2>Quiz do Aluno</h2>
+            <p>Tela de cadastro de visitantes e execução do desafio tecnológico teórico.</p>
+        </a>
+
+        <a href="dashboard.html" class="card-link dashboard">
+            <div class="icon">📊</div>
+            <h2>Dashboard Master</h2>
+            <p>Acompanhamento dos rankings ao vivo da proficiência teórica e da arena gamer.</p>
+        </a>
+
+        <a href="docente.html" class="card-link docente">
+            <div class="icon">📝</div>
+            <h2>Painel do Docente</h2>
+            <p>Portal restrito para professores inserirem e revisarem questões por área técnica.</p>
+        </a>
+
+        <a href="gestor.html" class="card-link gestor">
+            <div class="icon">⚙️</div>
+            <h2>Painel do Gestor</h2>
+            <p>Monitoramento analítico, logs operacionais de disparos e reset geral de dados.</p>
+        </a>
+    </div>
+
+    <div id="helpModal" class="modal-overlay" onclick="if(event.target === this) toggleHelp(false)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💡 Manual de Funções da Plataforma</h2>
+                <button class="btn-close-modal" onclick="toggleHelp(false)">&times;</button>
+            </div>
+            
+            <div class="help-item">
+                <strong style="color: var(--neon-green);">🎮 Quiz do Aluno</strong>
+                <p>Ambiente onde o visitante do evento insere seus dados de contato (captura de lead). O sistema inicia um quiz de 4 questões dinâmicas. Caso atinja a pontuação mínima, o sistema gera um voucher de liberação de hardware e aciona as automações.</p>
+            </div>
+
+            <div class="help-item">
+                <strong style="color: var(--amber);">📊 Dashboard Master</strong>
+                <p>Painel de exibição pública. Mostra em tempo real o ranking dos melhores alunos que responderam o quiz teórico, integrado ao placar da arena física dos minijogos: o da "cobrinha" e o "do avião".</p>
+            </div>
+
+            <div class="help-item">
+                <strong style="color: var(--primary-blue);">📝 Painel do Docente</strong>
+                <p>Área técnica restrita para a equipe pedagógica. Permite o cadastro em tempo real de novas questões de múltipla escolha NoSQL separadas por áreas (como Automação ou Elétrica).</p>
+            </div>
+
+            <div class="help-item">
+                <strong style="color: var(--purple);">⚙️ Painel do Gestor</strong>
+                <p>O centro operacional de controle. Monitora a fila de entrega de mensagens automáticas de WhatsApp para os alunos, exibe métricas gerais de tráfego e permite o reset total do banco ao fim dos eventos.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-credits">
+        Idealizado e criado com dedicação por: <strong>Saulo Lopes de Siqueira</strong><br>
+        Suporte Técnico Corporativo: <a href="https://wa.me/5535999960061" target="_blank">📞 (35) 99996-0061</a>
+    </div>
+
+    <script>
+        function toggleHelp(mostrar) {
+            const modal = document.getElementById('helpModal');
+            if (mostrar) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
