@@ -9,15 +9,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- BIBLIOTECA EMAILJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-   
-
-
-<script type="text/javascript">
-    (function() {
-        emailjs.init("KwxdUFHI39Wo3mFZv");
-    })();
-</script>
-
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("KwxdUFHI39Wo3mFZv");
+        })();
+    </script>
 
     <style>
         :root {
@@ -379,7 +375,7 @@
             <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
         </div>
 
-        <!-- NOVO: PAINEL DE ORDENAÇÃO DE AMBIENTES -->
+        <!-- PAINEL DE ORDENAÇÃO DE AMBIENTES -->
         <div class="painel-admin">
             <strong>↕️ Organizar Posição dos Ambientes</strong>
             <p style="font-size: 11px; color: #64748b; margin: 0 0 5px 0;">Use as setas para subir ou descer a posição na tela principal:</p>
@@ -507,7 +503,6 @@
             const data = snapshot.val();
             if (data) {
                 ambientes = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                // Ordena pelo campo 'ordem'. Se não tiver, joga para o fim
                 ambientes.sort((a, b) => {
                     let ordemA = a.ordem !== undefined ? a.ordem : 999;
                     let ordemB = b.ordem !== undefined ? b.ordem : 999;
@@ -568,17 +563,14 @@
             document.getElementById('sidebar-admin').classList.toggle('ativo');
         }
 
-        // Função para alterar a ordem no Firebase (Subir ou Descer)
         function moverAmbiente(index, direcao) {
             let novoIndex = index + direcao;
             if (novoIndex < 0 || novoIndex >= ambientes.length) return;
 
-            // Troca a ordem dos dois no array localmente para inverter
             let temp = ambientes[index];
             ambientes[index] = ambientes[novoIndex];
             ambientes[novoIndex] = temp;
 
-            // Atualiza o campo 'ordem' de todos no Firebase com base na nova posição do array
             ambientes.forEach((amb, i) => {
                 db.ref('ambientes/' + amb.id).update({ ordem: i + 1 });
             });
@@ -839,8 +831,8 @@
         }
 
         function alternarManutencao() {
-            const senhaManutencao = prompt("Digite a senha de manutenção (#manutencao) para alterar o status:");
-            if (senhaManutencao !== "#manutencao") {
+            const senhaManutencao = prompt("Digite a senha de manutenção (#Manutencao) para alterar o status:");
+            if (senhaManutencao !== "#Manutencao") {
                 if (senhaManutencao !== null) alert("Senha de manutenção incorreta!");
                 return;
             }
@@ -929,19 +921,15 @@
                 data_hora: dataCompleta
             };
 
+            emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
+                .then(function(response) {
+                    console.log("SUCCESS!", response.status, response.text);
+                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
+                }, function(error) {
+                    console.log("FAILED...", error);
+                    alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
+                });
 
-emailjs.send("service_zl2au3c", "template_l4h5se8", templateParams)
-    .then(function(response) {
-        console.log("SUCCESS!", response.status, response.text);
-        alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
-    }, function(error) {
-        console.log("FAILED...", error);
-        alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
-    });
-
-
-
-            
             fecharModal();
         }
 
