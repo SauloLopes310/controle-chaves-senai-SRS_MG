@@ -927,6 +927,13 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
             if (!solicitante || solicitante.trim() === "") return;
 
+            // NOVO: Pergunta o e-mail para enviar a cópia
+            let emailSolicitante = prompt("Insira o seu e-mail para receber a cópia do chamado:");
+            if (!emailSolicitante || emailSolicitante.trim() === "") {
+                alert("É necessário informar um e-mail válido.");
+                return;
+            }
+
             let motivoProblema = prompt("Descreva detalhadamente o problema ou motivo da manutenção:");
             if (!motivoProblema || motivoProblema.trim() === "") {
                 alert("É obrigatório informar o motivo da solicitação de manutenção.");
@@ -935,7 +942,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
 
             const dataCompleta = new Date().toLocaleString();
 
-            // Salva no Firebase
+            // Salva no Firebase (mantendo tudo igual)
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: solicitante.trim(),
@@ -944,20 +951,21 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            // Parâmetros exatos correspondentes ao template do EmailJS
+            // Parâmetros enviados para o EmailJS
             let templateParams = {
-                to_email: "romario.carlos@fiemg.com.br",
+                to_email: "romario.carlos@fiemg.com.br", // E-mail principal do Romário
+                reply_to: emailSolicitante.trim(),       // Permite responder diretamente ao solicitante
                 ambiente: amb.nome,
                 solicitante: solicitante.trim(),
                 motivo: motivoProblema.trim(),
                 data_hora: dataCompleta
             };
 
-            // Disparo via EmailJS com o Service ID e Template ID corretos
+            // Disparo via EmailJS
             emailjs.send("service_zl2au3c", "template_wsif6f4", templateParams)
                 .then(function(response) {
                     console.log("SUCCESS!", response.status, response.text);
-                    alert('Chamado de manutenção registrado e e-mail enviado com sucesso para o Romário!');
+                    alert('Chamado registrado, enviado para o Romário e cópia encaminhada para o seu e-mail!');
                 }, function(error) {
                     console.log("FAILED...", error);
                     alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
