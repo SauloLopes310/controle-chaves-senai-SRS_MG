@@ -327,7 +327,7 @@
         <div class="section-header">
             <div class="section-title">Histórico de Movimentações Recentes</div>
             <div class="relatorio-btns" style="display: flex; align-items: center; gap: 10px;">
-                <label style="font-size: 11px; font-weight: 600; color: #64748b;"> Quantidade de ocorrenicas na visualização, mostrar:</label>
+                <label style="font-size: 11px; font-weight: 600; color: #64748b;">Quantidade de ocorrências na visualização, mostrar:</label>
                 <select id="limite-paginacao" onchange="aplicarFiltros()" style="padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; background: white;">
                     <option value="25" selected>25</option>
                     <option value="50">50</option>
@@ -370,20 +370,18 @@
     </div>
 
     <!-- Menu Lateral Retrátil de Cadastros -->
-
-
     <div id="sidebar-admin" class="sidebar">
         <div class="sidebar-header">
             <h3>Painel de Gestão</h3>
             <button class="btn-fechar-sidebar" onclick="toggleSidebar()">✕</button>
         </div>
 
-<!-- PAINEL DE VISUALIZAÇÃO DO TOLKEN ATUAL -->
-<div class="painel-admin" style="background: #e0f2fe; border-color: #bae6fd;">
-    <strong style="color: #0369a1;">🔑 Código TOLKEN Ativo</strong>
-    <div id="token-display-admin" style="font-size: 20px; font-weight: bold; color: #0284c7; text-align: center; letter-spacing: 3px; margin: 5px 0;">--</div>
-    <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">Código atual para validação presencial na retirada/devolução.</p>
-</div>
+        <!-- PAINEL DE VISUALIZAÇÃO DO TOLKEN ATUAL -->
+        <div class="painel-admin" style="background: #e0f2fe; border-color: #bae6fd;">
+            <strong style="color: #0369a1;">🔑 Código TOLKEN Ativo</strong>
+            <div id="token-display-admin" style="font-size: 20px; font-weight: bold; color: #0284c7; text-align: center; letter-spacing: 3px; margin: 5px 0;">--</div>
+            <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">Código atual para validação presencial na retirada/devolução.</p>
+        </div>
 
         <div class="painel-admin">
             <strong>➕ Novo Ambiente</strong>
@@ -416,6 +414,12 @@
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
                 <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
                 <button class="btn" id="btn-solicitar-manutencao" style="width: 100%; margin-top: 5px; background-color: #0284c7;" onclick="solicitarManutencao()">✉️ Solicitar Manutenção (Reportar Problema)</button>
+            </div>
+
+            <!-- BLOCO DE LIBERAÇÃO MASTER POR AMBIENTE -->
+            <div id="bloco-admin-liberacao" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
+                <label style="font-size: 12px; font-weight: bold; color: var(--danger);">Painel Master (Gestão de Portaria):</label>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 5px; background-color: #b91c1c;" onclick="liberacaoMasterAmbiente()">🛡️ Forçar Liberação Master (Desocupar Sala)</button>
             </div>
 
             <!-- BLOCO DE RETIRADA INICIAL -->
@@ -501,15 +505,25 @@
         let ambienteAtualId = null;
         let tokenGlobalDoBanco = "";
 
-      
-db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
-    tokenGlobalDoBanco = snapshot.val() || "";
-    const tokenElement = document.getElementById('token-display-admin');
-    if (tokenElement) {
-        tokenElement.textContent = tokenGlobalDoBanco || "N/A";
-    }
-});
+        // FUNÇÃO PADRÃO PARA UNIFICAR DATA E HORA COM SEGUNDOS
+        function obterDataHoraAtual() {
+            const agora = new Date();
+            const dia = String(agora.getDate()).padStart(2, '0');
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const ano = agora.getFullYear();
+            const hora = String(agora.getHours()).padStart(2, '0');
+            const minuto = String(agora.getMinutes()).padStart(2, '0');
+            const segundo = String(agora.getSeconds()).padStart(2, '0');
+            return `${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`;
+        }
 
+        db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
+            tokenGlobalDoBanco = snapshot.val() || "";
+            const tokenElement = document.getElementById('token-display-admin');
+            if (tokenElement) {
+                tokenElement.textContent = tokenGlobalDoBanco || "N/A";
+            }
+        });
 
         db.ref('usuarios').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -727,7 +741,6 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             const acaoFiltro = document.getElementById('filtro-acao').value;
             const limiteSelect = document.getElementById('limite-paginacao');
 
-            // Se o elemento select existir, pega o valor dele; caso contrário, assume 25 por segurança
             const limiteSelecionado = limiteSelect ? limiteSelect.value : "25";
 
             const tbody = document.getElementById('tabela-historico');
@@ -751,7 +764,6 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             if (historicoFiltrado.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma movimentação encontrada com os filtros aplicados.</td></tr>`;
             } else {
-                // Define o limite de exibição com base na escolha do usuário (padrão de 25 se não especificado)
                 let limite = limiteSelecionado === 'todos' ? historicoFiltrado.length : (parseInt(limiteSelecionado) || 25);
                 let historicoPaginado = historicoFiltrado.slice(0, limite);
 
@@ -762,7 +774,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                     }
 
                     let corTipo = 'var(--success)';
-                    if (h.tipo === 'Retirada' || h.tipo === 'Saída da Sessão') corTipo = 'var(--danger)';
+                    if (h.tipo === 'Retirada' || h.tipo === 'Saída da Sessão' || h.tipo === 'Liberação Master (Portaria)') corTipo = 'var(--danger)';
                     if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação' || h.tipo === 'Solicitação de Manutenção') corTipo = 'var(--warning)';
 
                     tbody.innerHTML += `
@@ -807,6 +819,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             const blocoCoocupar = document.getElementById('bloco-coocupar');
             const blocoDevolucao = document.getElementById('bloco-devolucao');
             const blocoAdminStatus = document.getElementById('bloco-admin-status');
+            const blocoAdminLiberacao = document.getElementById('bloco-admin-liberacao');
             const btnManutencao = document.getElementById('btn-toggle-manutencao');
             const info = document.getElementById('modal-info');
 
@@ -815,6 +828,12 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
 
             blocoAdminStatus.style.display = 'block';
 
+            if (amb.status === 'ocupada') {
+                blocoAdminLiberacao.style.display = 'block';
+            } else {
+                blocoAdminLiberacao.style.display = 'none';
+            }
+
             if (amb.status === 'manutencao' || acaoForcada === 'manutencao') {
                 btnManutencao.textContent = amb.status === 'manutencao' ? "✅ Retirar da Manutenção (Liberar)" : "⚠️ Colocar em Manutenção";
                 btnManutencao.style.backgroundColor = amb.status === 'manutencao' ? "var(--success)" : "var(--warning)";
@@ -822,21 +841,25 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
+                blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
                 info.textContent = "Informe seus dados nome e senha e o código TOLKEN de 2 letras exibido na tela do quadro para retirar a chave.";
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
+                blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'coocupar') {
                 info.textContent = "Adicione-se como co-ocupante desta sala/laboratório em andamento.";
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
+                blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
                 info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo (apenas participantes ativos):`;
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
+                blocoAdminLiberacao.style.display = 'none';
 
                 const selectDev = document.getElementById('select-responsavel-devolucao');
                 selectDev.innerHTML = '';
@@ -860,6 +883,42 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             document.getElementById('modal-acao').style.display = 'flex';
         }
 
+        // FUNÇÃO DE LIBERAÇÃO MASTER POR AMBIENTE
+        function liberacaoMasterAmbiente() {
+            const senhaAdmin = prompt("Digite a senha de administrador (#13371) para forçar a liberação deste ambiente:");
+            if (senhaAdmin !== "#13371") {
+                if (senhaAdmin !== null) alert("Senha de administrador incorreta!");
+                return;
+            }
+
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            let motivoLiberacao = prompt("Informe o motivo da liberação master (ex: Colaborador foi embora sem devolver):");
+            if (!motivoLiberacao || motivoLiberacao.trim() === "") {
+                motivoLiberacao = "Liberação forçada pela portaria (colaborador ausente)";
+            }
+
+            const dataCompleta = obterDataHoraAtual();
+            const responsavelAnterior = amb.responsavel || "Desconhecido";
+
+            db.ref('ambientes/' + amb.id).update({
+                status: 'disponivel',
+                responsavel: '',
+                hora: '',
+                coocupantes: null
+            });
+
+            db.ref('historico').push({
+                ambiente: amb.nome,
+                responsavel: 'Gestor do Sistema (Master)',
+                tipo: 'Liberação Master (Portaria)',
+                dataHora: dataCompleta,
+                observacoes: `Responsável anterior: ${responsavelAnterior}. Motivo: ${motivoLiberacao.trim()}`
+            });
+
+            fecharModal();
+            alert(`Ambiente ${amb.nome} liberado com sucesso pelo Gestor! O laboratório está pronto para nova retirada.`);
+        }
+
         function alternarManutencao() {
             const senhaManutencao = prompt("Digite a senha de manutenção (#Manutencao) para alterar o status:");
             if (senhaManutencao !== "#Manutencao") {
@@ -871,7 +930,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
 
             if (amb.status === 'manutencao') {
                 const obsLiberacao = prompt("Observação da liberação técnica (Opcional):") || "Sem observações";
-                const dataCompleta = new Date().toLocaleString();
+                const dataCompleta = obterDataHoraAtual();
                 
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
@@ -899,7 +958,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 }
 
                 const obsManutencao = prompt("Motivo da Manutenção (Opcional):") || "Manutenção preventiva/corretiva";
-                const dataCompleta = new Date().toLocaleString();
+                const dataCompleta = obterDataHoraAtual();
 
                 db.ref('ambientes/' + amb.id).update({
                     status: 'manutencao',
@@ -927,7 +986,6 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
             if (!solicitante || solicitante.trim() === "") return;
 
-            // NOVO: Pergunta o e-mail para enviar a cópia
             let emailSolicitante = prompt("Insira o seu e-mail para receber a cópia do chamado:");
             if (!emailSolicitante || emailSolicitante.trim() === "") {
                 alert("É necessário informar um e-mail válido.");
@@ -940,9 +998,8 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 return;
             }
 
-            const dataCompleta = new Date().toLocaleString();
+            const dataCompleta = obterDataHoraAtual();
 
-            // Salva no Firebase (mantendo tudo igual)
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: solicitante.trim(),
@@ -951,17 +1008,15 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 observacoes: 'Problema relatado: ' + motivoProblema.trim()
             });
 
-            // Parâmetros enviados para o EmailJS
             let templateParams = {
-                to_email: "romario.carlos@fiemg.com.br", // E-mail principal do Romário
-                reply_to: emailSolicitante.trim(),       // Permite responder diretamente ao solicitante
+                to_email: "romario.carlos@fiemg.com.br",
+                reply_to: emailSolicitante.trim(),
                 ambiente: amb.nome,
                 solicitante: solicitante.trim(),
                 motivo: motivoProblema.trim(),
                 data_hora: dataCompleta
             };
 
-            // Disparo via EmailJS
             emailjs.send("service_zl2au3c", "template_wsif6f4", templateParams)
                 .then(function(response) {
                     console.log("SUCCESS!", response.status, response.text);
@@ -998,8 +1053,10 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             }
 
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dataCompleta = new Date().toLocaleDateString() + ' ' + agora;
+            
+            // Usa a função padrão unificada para hora e data completa
+            const agoraHoraMinuto = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dataCompleta = obterDataHoraAtual();
 
             let coocupantesObj = {};
             coocupantesObj[nomeSelecionado.replace(/[^a-zA-Z0-9]/g, '_')] = nomeSelecionado;
@@ -1007,11 +1064,11 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
+                    salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agora, observacoes, coocupantesObj, null, null);
+                salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, null, null);
             }
         }
 
@@ -1053,7 +1110,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
 
             db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
 
-            const dataCompleta = new Date().toLocaleString();
+            const dataCompleta = obterDataHoraAtual();
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: nomeSelecionado,
@@ -1098,7 +1155,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 }
             }
 
-            const dataCompleta = new Date().toLocaleString();
+            const dataCompleta = obterDataHoraAtual();
 
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
@@ -1176,7 +1233,7 @@ db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
                 return;
             }
             let conteudo = "RELATORIO DE CONTROLE DE CHAVES - SENAI SRS\n";
-            conteudo += "Gerado em: " + new Date().toLocaleString() + "\n";
+            conteudo += "Gerado em: " + obterDataHoraAtual() + "\n";
             conteudo += "--------------------------------------------------\n\n";
             
             historico.forEach(h => {
