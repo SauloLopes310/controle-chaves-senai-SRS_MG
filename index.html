@@ -50,7 +50,13 @@
         header .logo-area h1 { margin: 0; font-size: 22px; }
         header .logo-area p { margin: 3px 0 0 0; font-size: 12px; opacity: 0.9; }
 
-        .btn-admin-toggle {
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-admin-toggle, .btn-senha-toggle {
             background-color: rgba(255, 255, 255, 0.15);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -62,7 +68,7 @@
             transition: background 0.2s;
         }
 
-        .btn-admin-toggle:hover { background-color: rgba(255, 255, 255, 0.25); }
+        .btn-admin-toggle:hover, .btn-senha-toggle:hover { background-color: rgba(255, 255, 255, 0.25); }
 
         .container {
             max-width: 1300px;
@@ -300,7 +306,7 @@
         }
 
         @media print {
-            header, .btn-admin-toggle, .relatorio-btns, .filtros-box, footer, .chaves-grid, .section-title:first-of-type {
+            header, .header-actions, .relatorio-btns, .filtros-box, footer, .chaves-grid, .section-title:first-of-type {
                 display: none !important;
             }
             body { background: white; }
@@ -317,7 +323,10 @@
             <h1>Controle Digital de Chaves</h1>
             <p>SENAI - Santa Rita do Sapucaí / MG</p>
         </div>
-        <button class="btn-admin-toggle" onclick="tentarAbrirAdmin()">⚙️ Gerenciar Cadastros</button>
+        <div class="header-actions">
+            <button class="btn-senha-toggle" onclick="abrirModalTrocaSenha()">⚙️ Meus Dados / Senha</button>
+            <button class="btn-admin-toggle" onclick="tentarAbrirAdmin()">⚙️ Gerenciar Cadastros</button>
+        </div>
     </header>
 
     <div class="container">
@@ -401,6 +410,32 @@
             <input type="text" id="novo-usuario" placeholder="Nome do Colaborador...">
             <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
             <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
+        </div>
+    </div>
+
+    <!-- Modal de Atualização de Dados e Senha do Colaborador -->
+    <div id="modal-troca-senha" class="modal">
+        <div class="modal-content">
+            <h3 style="color: #0284c7;">⚙️ Meus Dados / Informações Pessoais</h3>
+            <p style="font-size: 13px; color: #64748b;">Selecione o seu nome, atualize seus dados e informe sua senha atual para confirmar:</p>
+            
+            <label style="font-size: 12px; font-weight: bold;">Selecione o seu Nome:</label>
+            <select id="select-usuario-troca-senha" onchange="preencherDadosUsuarioModal()"></select>
+
+            <label style="font-size: 12px; font-weight: bold;">Alterar Nome:</label>
+            <input type="text" id="input-novo-nome-usuario" placeholder="Seu nome completo">
+
+            <label style="font-size: 12px; font-weight: bold;">Seu E-mail (Para receber cópias de chamados):</label>
+            <input type="email" id="input-novo-email-usuario" placeholder="seu.email@fiemg.com.br">
+
+            <label style="font-size: 12px; font-weight: bold;">Nova Senha (Deixe em branco se não quiser alterar):</label>
+            <input type="password" id="nova-senha-troca" placeholder="Nova senha (opcional)">
+
+            <label style="font-size: 12px; font-weight: bold; color: var(--danger);">Senha Atual (Obrigatório para confirmar):</label>
+            <input type="password" id="senha-atual-troca" placeholder="Digite sua senha atual">
+
+            <button class="btn btn-success" style="width: 100%; margin-top: 5px; background-color: #0284c7;" onclick="atualizarDadosUsuario()">Salvar Alterações</button>
+            <button class="btn" style="width: 100%; background-color: #64748b; margin-top: 10px;" onclick="fecharModalTrocaSenha()">Cancelar</button>
         </div>
     </div>
 
@@ -599,6 +634,83 @@
             document.getElementById('sidebar-admin').classList.toggle('ativo');
         }
 
+        function abrirModalTrocaSenha() {
+            document.getElementById('senha-atual-troca').value = '';
+            document.getElementById('nova-senha-troca').value = '';
+            document.getElementById('modal-troca-senha').style.display = 'flex';
+            preencherDadosUsuarioModal();
+        }
+
+        function fecharModalTrocaSenha() {
+            document.getElementById('modal-troca-senha').style.display = 'none';
+        }
+
+        function preencherDadosUsuarioModal() {
+            const nomeSelecionado = document.getElementById('select-usuario-troca-senha').value;
+            const userObj = usuarios.find(u => u.nome === nomeSelecionado);
+            if (userObj) {
+                document.getElementById('input-novo-nome-usuario').value = userObj.nome || '';
+                document.getElementById('input-novo-email-usuario').value = userObj.email || '';
+            }
+        }
+
+       
+
+// FUNÇÃO DE ATUALIZAÇÃO DE DADOS E SENHA COM TRAVA DE AMBIENTE OCUPADO
+        function atualizarDadosUsuario() {
+            const nomeSelecionado = document.getElementById('select-usuario-troca-senha').value;
+            const novoNome = document.getElementById('input-novo-nome-usuario').value.trim();
+            const novoEmail = document.getElementById('input-novo-email-usuario').value.trim();
+            const senhaAtual = document.getElementById('senha-atual-troca').value.trim();
+            const novaSenha = document.getElementById('nova-senha-troca').value.trim();
+
+            if (!senhaAtual) {
+                alert("É obrigatório informar a sua senha atual para confirmar as alterações.");
+                return;
+            }
+
+            if (!novoNome) {
+                alert("O nome não pode ficar em branco.");
+                return;
+            }
+
+            const userObj = usuarios.find(u => u.nome === nomeSelecionado);
+            if (!userObj || userObj.senha !== senhaAtual) {
+                alert("A senha atual informada está incorreta!");
+                return;
+            }
+
+            // TRAVA DE SEGURANÇA: Verifica se o usuário está com algum ambiente ocupado no momento
+            let ambienteOcupadoPeloUsuario = ambientes.find(amb => {
+                let ehResponsavel = amb.status === 'ocupada' && amb.responsavel === nomeSelecionado;
+                let ehCoocupante = amb.status === 'ocupada' && amb.coocupantes && Object.values(amb.coocupantes).includes(nomeSelecionado);
+                return ehResponsavel || ehCoocupante;
+            });
+
+            if (ambienteOcupadoPeloUsuario) {
+                alert(`Atenção: Não é possível alterar seus dados cadastrais no momento pois você está com a chave do ambiente "${ambienteOcupadoPeloUsuario.nome}" em uso. Por favor, devolva a chave na portaria antes de atualizar seu cadastro.`);
+                return;
+            }
+
+            // Define a nova senha ou mantém a atual se o campo estiver vazio
+            const senhaFinal = novaSenha !== "" ? novaSenha : userObj.senha;
+
+            db.ref('usuarios/' + userObj.id).update({ 
+                nome: novoNome, 
+                email: novoEmail, 
+                senha: senhaFinal 
+            }, (error) => {
+                if (error) {
+                    alert("Erro ao atualizar os dados: " + error.message);
+                } else {
+                    alert(`Dados de ${novoNome} atualizados com sucesso!`);
+                    fecharModalTrocaSenha();
+                }
+            });
+        }
+
+
+
         function moverAmbiente(index, direcao) {
             let novoIndex = index + direcao;
             if (novoIndex < 0 || novoIndex >= ambientes.length) return;
@@ -796,9 +908,10 @@
         function popularSelectsRetiradaECoocupacao() {
             usuarios.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            ['select-responsavel-retirada', 'select-responsavel-coocupar'].forEach(id => {
+            ['select-responsavel-retirada', 'select-responsavel-coocupar', 'select-usuario-troca-senha'].forEach(id => {
                 const select = document.getElementById(id);
                 if (select) {
+                    let valorAtual = select.value;
                     select.innerHTML = '';
                     usuarios.forEach(user => {
                         const opt = document.createElement('option');
@@ -806,8 +919,14 @@
                         opt.textContent = user.nome;
                         select.appendChild(opt);
                     });
+                    if (valorAtual) select.value = valorAtual;
                 }
             });
+            // Atualiza os inputs do modal de perfil se estiver aberto
+            const selectPerfil = document.getElementById('select-usuario-troca-senha');
+            if (selectPerfil && document.getElementById('modal-troca-senha').style.display === 'flex') {
+                preencherDadosUsuarioModal();
+            }
         }
 
         function abrirModal(id, acaoForcada) {
@@ -1053,8 +1172,6 @@
             }
 
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            
-            // Usa a função padrão unificada para hora e data completa
             const agoraHoraMinuto = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = obterDataHoraAtual();
 
@@ -1282,7 +1399,7 @@
                     alert('Usuário já cadastrado.');
                     return;
                 }
-                db.ref('usuarios').push({ nome: nome, senha: senha });
+                db.ref('usuarios').push({ nome: nome, senha: senha, email: '' });
                 document.getElementById('novo-usuario').value = '';
                 document.getElementById('nova-senha').value = '';
                 alert(`Colaborador "${nome}" cadastrado!`);
