@@ -330,10 +330,17 @@
     </header>
 
     <div class="container">
-        <div class="section-title">Status dos Ambientes e Chaves</div>
+        <!-- SEÇÃO DE AMBIENTES COM CHAVES / TOKEN -->
+        <div class="section-title">🔑 Ambientes com Chaves e Token na Portaria</div>
         <div id="grid-chaves" class="chaves-grid"></div>
 
-        <div class="section-header">
+        <!-- SEÇÃO DE AMBIENTES LIVRES (ACESSO SOMENTE POR SENHA) -->
+        <div class="section-header" style="margin-top: 25px;">
+            <div class="section-title">🚪 Ambientes de Acesso Livre (Sem Chave / Somente Senha)</div>
+        </div>
+        <div id="grid-livres" class="chaves-grid"></div>
+
+        <div class="section-header" style="margin-top: 25px;">
             <div class="section-title">Histórico de Movimentações Recentes</div>
             <div class="relatorio-btns" style="display: flex; align-items: center; gap: 10px;">
                 <label style="font-size: 11px; font-weight: 600; color: #64748b;">Quantidade de ocorrências na visualização, mostrar:</label>
@@ -395,7 +402,13 @@
         <div class="painel-admin">
             <strong>➕ Novo Ambiente</strong>
             <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
-            <button class="btn" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
+            
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 12px;">
+                <input type="checkbox" id="novo-exige-token" checked style="width: auto; margin: 0;">
+                <label for="novo-exige-token" style="cursor: pointer; font-weight: 600;">Exige Token/Chave na Portaria</label>
+            </div>
+
+            <button class="btn" style="margin-top: 8px;" onclick="adicionarAmbiente()">Adicionar Ambiente</button>
         </div>
 
         <!-- PAINEL DE ORDENAÇÃO DE AMBIENTES -->
@@ -439,10 +452,10 @@
         </div>
     </div>
 
-    <!-- Modal de Interação de Chaves / Manutenção / Co-ocupação -->
+    <!-- Modal de Interação de Ambientes (Com ou Sem Token) -->
     <div id="modal-acao" class="modal">
         <div class="modal-content">
-            <h3 id="modal-titulo">Gerenciar Chave</h3>
+            <h3 id="modal-titulo">Gerenciar Ambiente</h3>
             <p id="modal-info" style="font-size: 13px; color: #64748b;"></p>
             
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
@@ -457,7 +470,7 @@
                 <button class="btn btn-danger" style="width: 100%; margin-top: 5px; background-color: #b91c1c;" onclick="liberacaoMasterAmbiente()">🛡️ Forçar Liberação Master (Desocupar Sala)</button>
             </div>
 
-            <!-- BLOCO DE RETIRADA INICIAL -->
+            <!-- BLOCO DE RETIRADA / ENTRADA -->
             <div id="bloco-retirada" style="display: none;">
                 <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável Principal:</label>
                 <select id="select-responsavel-retirada"></select>
@@ -465,8 +478,11 @@
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
                 <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
-                <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                <!-- CAMPO CONDICIONAL DE TOKEN -->
+                <div id="grupo-token-retirada">
+                    <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
+                    <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
                 <textarea id="input-obs-retirada" placeholder="Ex: Turma Técnico Eletroeletrônica..."></textarea>
@@ -474,7 +490,7 @@
                 <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
                 <input type="file" id="input-arquivo-retirada" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
                 
-                <button class="btn btn-success" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Retirada</button>
+                <button class="btn btn-success" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Acesso / Retirada</button>
             </div>
 
             <!-- BLOCO DE CO-OCUPAÇÃO (ENTRAR NA SESSÃO) -->
@@ -499,8 +515,11 @@
                 <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
                 <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
                 
-                <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
-                <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                <!-- CAMPO CONDICIONAL DE TOKEN NA DEVOLUÇÃO -->
+                <div id="grupo-token-devolucao">
+                    <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
+                    <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
                 <textarea id="input-obs-devolucao" placeholder="Ex: Sala devolvida sem pendências..."></textarea>
@@ -597,26 +616,23 @@
 
         function inicializarBancoPadrao() {
             const usuariosIniciais = [
-                { nome: "Andreia", senha: "123" }, { nome: "Leandro", senha: "123" },
-                { nome: "João", senha: "123" }, { nome: "Danilo", senha: "123" },
-                { nome: "Roniam", senha: "123" }, { nome: "Ramona", senha: "123" },
-                { nome: "Jackson", senha: "123" }, { nome: "Alberto", senha: "123" },
-                { nome: "Luiz", senha: "123" }, { nome: "Felipe", senha: "123" },
-                { nome: "Saulo", senha: "123" }, { nome: "Gil", senha: "123" }
+                { nome: "Andreia", senha: "123", email: "" }, { nome: "Leandro", senha: "123", email: "" },
+                { nome: "João", senha: "123", email: "" }, { nome: "Danilo", senha: "123", email: "" },
+                { nome: "Roniam", senha: "123", email: "" }, { nome: "Ramona", senha: "123", email: "" },
+                { nome: "Jackson", senha: "123", email: "" }, { nome: "Alberto", senha: "123", email: "" },
+                { nome: "Luiz", senha: "123", email: "" }, { nome: "Felipe", senha: "123", email: "" },
+                { nome: "Saulo", senha: "123", email: "" }, { nome: "Gil", senha: "123", email: "" }
             ];
             usuariosIniciais.forEach(u => db.ref('usuarios').push(u));
 
             const ambientesIniciais = [
-                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '', ordem: 1 },
-                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '', ordem: 2 },
-                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '', ordem: 3 },
-                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '', ordem: 4 },
-                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '', ordem: 5 },
-                { nome: 'Elétrica Industrial (108A_I)', status: 'disponivel', responsavel: '', hora: '', ordem: 6 },
-                { nome: 'Salas 301 / 302', status: 'disponivel', responsavel: '', hora: '', ordem: 7 },
-                { nome: 'Sala 201A', status: 'disponivel', responsavel: '', hora: '', ordem: 8 },
-                { nome: 'Sala 302A', status: 'disponivel', responsavel: '', hora: '', ordem: 9 },
-                { nome: 'Sala 303A', status: 'disponivel', responsavel: '', hora: '', ordem: 10 }
+                { nome: 'Lab 4.0', status: 'disponivel', responsavel: '', hora: '', ordem: 1, exigeToken: true },
+                { nome: 'Mecânica (101B)', status: 'disponivel', responsavel: '', hora: '', ordem: 2, exigeToken: true },
+                { nome: 'Automação (104A)', status: 'disponivel', responsavel: '', hora: '', ordem: 3, exigeToken: true },
+                { nome: 'Informática (106A)', status: 'disponivel', responsavel: '', hora: '', ordem: 4, exigeToken: true },
+                { nome: 'Eletrônica (107A)', status: 'disponivel', responsavel: '', hora: '', ordem: 5, exigeToken: true },
+                { nome: 'Auditório Principal', status: 'disponivel', responsavel: '', hora: '', ordem: 6, exigeToken: false },
+                { nome: 'Sala de Reuniões 1', status: 'disponivel', responsavel: '', hora: '', ordem: 7, exigeToken: false }
             ];
             ambientesIniciais.forEach(a => db.ref('ambientes').push(a));
         }
@@ -654,9 +670,7 @@
             }
         }
 
-       
-
-// FUNÇÃO DE ATUALIZAÇÃO DE DADOS E SENHA COM TRAVA DE AMBIENTE OCUPADO
+        // FUNÇÃO DE ATUALIZAÇÃO DE DADOS E SENHA COM TRAVA DE AMBIENTE OCUPADO
         function atualizarDadosUsuario() {
             const nomeSelecionado = document.getElementById('select-usuario-troca-senha').value;
             const novoNome = document.getElementById('input-novo-nome-usuario').value.trim();
@@ -680,7 +694,6 @@
                 return;
             }
 
-            // TRAVA DE SEGURANÇA: Verifica se o usuário está com algum ambiente ocupado no momento
             let ambienteOcupadoPeloUsuario = ambientes.find(amb => {
                 let ehResponsavel = amb.status === 'ocupada' && amb.responsavel === nomeSelecionado;
                 let ehCoocupante = amb.status === 'ocupada' && amb.coocupantes && Object.values(amb.coocupantes).includes(nomeSelecionado);
@@ -688,11 +701,10 @@
             });
 
             if (ambienteOcupadoPeloUsuario) {
-                alert(`Atenção: Não é possível alterar seus dados cadastrais no momento pois você está com a chave do ambiente "${ambienteOcupadoPeloUsuario.nome}" em uso. Por favor, devolva a chave na portaria antes de atualizar seu cadastro.`);
+                alert(`Atenção: Não é possível alterar seus dados cadastrais no momento pois você está com o ambiente "${ambienteOcupadoPeloUsuario.nome}" em uso. Por favor, libere o ambiente antes de atualizar seu cadastro.`);
                 return;
             }
 
-            // Define a nova senha ou mantém a atual se o campo estiver vazio
             const senhaFinal = novaSenha !== "" ? novaSenha : userObj.senha;
 
             db.ref('usuarios/' + userObj.id).update({ 
@@ -708,8 +720,6 @@
                 }
             });
         }
-
-
 
         function moverAmbiente(index, direcao) {
             let novoIndex = index + direcao;
@@ -734,7 +744,7 @@
                 item.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: white; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;";
                 
                 let nomeSpan = document.createElement('span');
-                nomeSpan.textContent = `${index + 1}. ${amb.nome}`;
+                nomeSpan.textContent = `${index + 1}. ${amb.nome} (${amb.exigeToken !== false ? 'Com Token' : 'Livre'})`;
                 nomeSpan.style.fontWeight = "600";
 
                 let botoesDiv = document.createElement('div');
@@ -794,23 +804,27 @@
             selectAcao.value = acaoAtual;
         }
 
+        // SEPARAÇÃO DO DASHBOARD EM DUAS GRIDS: COM TOKEN E LIVRES (SEM TOKEN)
         function renderizar() {
-            const grid = document.getElementById('grid-chaves');
-            grid.innerHTML = '';
+            const gridChaves = document.getElementById('grid-chaves');
+            const gridLivres = document.getElementById('grid-livres');
+            gridChaves.innerHTML = '';
+            gridLivres.innerHTML = '';
 
             ambientes.forEach(amb => {
                 const card = document.createElement('div');
                 card.className = `chave-card ${amb.status}`;
+                const exigeToken = amb.exigeToken !== false; // Padrão é true
 
                 if (amb.status === 'disponivel') {
                     card.innerHTML = `
                         <div>
                             <div class="chave-nome">${amb.nome}</div>
-                            <div class="chave-status">🟢 Chave na Portaria</div>
-                            <div class="chave-detalhes">Disponível para retirada</div>
+                            <div class="chave-status">${exigeToken ? '🟢 Chave na Portaria' : '🟢 Ambiente Disponível'}</div>
+                            <div class="chave-detalhes">${exigeToken ? 'Disponível para retirada' : 'Acesso livre via senha'}</div>
                         </div>
                         <div class="card-actions">
-                            <button class="btn btn-success" style="width:100%;" onclick="abrirModal('${amb.id}', 'retirar')">Retirar Chave</button>
+                            <button class="btn btn-success" style="width:100%;" onclick="abrirModal('${amb.id}', 'retirar')">${exigeToken ? 'Retirar Chave' : 'Registrar Presença'}</button>
                         </div>
                     `;
                 } else if (amb.status === 'ocupada') {
@@ -823,7 +837,7 @@
                         </div>
                         <div class="card-actions">
                             <button class="btn btn-warning" style="flex:1;" onclick="abrirModal('${amb.id}', 'coocupar')">＋ Entrar</button>
-                            <button class="btn btn-danger" style="flex:1;" onclick="abrirModal('${amb.id}', 'devolver')">Devolver</button>
+                            <button class="btn btn-danger" style="flex:1;" onclick="abrirModal('${amb.id}', 'devolver')">${exigeToken ? 'Devolver' : 'Sair'}</button>
                         </div>
                     `;
                 } else if (amb.status === 'manutencao') {
@@ -838,7 +852,12 @@
                         </div>
                     `;
                 }
-                grid.appendChild(card);
+
+                if (exigeToken) {
+                    gridChaves.appendChild(card);
+                } else {
+                    gridLivres.appendChild(card);
+                }
             });
 
             popularSelectsRetiradaECoocupacao();
@@ -922,7 +941,6 @@
                     if (valorAtual) select.value = valorAtual;
                 }
             });
-            // Atualiza os inputs do modal de perfil se estiver aberto
             const selectPerfil = document.getElementById('select-usuario-troca-senha');
             if (selectPerfil && document.getElementById('modal-troca-senha').style.display === 'flex') {
                 preencherDadosUsuarioModal();
@@ -933,12 +951,15 @@
             ambienteAtualId = id;
             const amb = ambientes.find(a => a.id === id);
             document.getElementById('modal-titulo').textContent = amb.nome;
+            const exigeToken = amb.exigeToken !== false;
 
             const blocoRetirada = document.getElementById('bloco-retirada');
             const blocoCoocupar = document.getElementById('bloco-coocupar');
             const blocoDevolucao = document.getElementById('bloco-devolucao');
             const blocoAdminStatus = document.getElementById('bloco-admin-status');
             const blocoAdminLiberacao = document.getElementById('bloco-admin-liberacao');
+            const grupoTokenRetirada = document.getElementById('grupo-token-retirada');
+            const grupoTokenDevolucao = document.getElementById('grupo-token-devolucao');
             const btnManutencao = document.getElementById('btn-toggle-manutencao');
             const info = document.getElementById('modal-info');
 
@@ -953,6 +974,14 @@
                 blocoAdminLiberacao.style.display = 'none';
             }
 
+            if (exigeToken) {
+                grupoTokenRetirada.style.display = 'block';
+                grupoTokenDevolucao.style.display = 'block';
+            } else {
+                grupoTokenRetirada.style.display = 'none';
+                grupoTokenDevolucao.style.display = 'none';
+            }
+
             if (amb.status === 'manutencao' || acaoForcada === 'manutencao') {
                 btnManutencao.textContent = amb.status === 'manutencao' ? "✅ Retirar da Manutenção (Liberar)" : "⚠️ Colocar em Manutenção";
                 btnManutencao.style.backgroundColor = amb.status === 'manutencao' ? "var(--success)" : "var(--warning)";
@@ -962,7 +991,9 @@
                 blocoDevolucao.style.display = 'none';
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
-                info.textContent = "Informe seus dados nome e senha e o código TOLKEN de 2 letras exibido na tela do quadro para retirar a chave.";
+                info.textContent = exigeToken 
+                    ? "Informe seus dados, senha e o código TOLKEN de 2 letras para retirar a chave."
+                    : "Informe seus dados e senha para registrar presença neste ambiente livre.";
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
@@ -974,7 +1005,7 @@
                 blocoDevolucao.style.display = 'none';
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
-                info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo (apenas participantes ativos):`;
+                info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo:`;
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
@@ -1011,9 +1042,9 @@
             }
 
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            let motivoLiberacao = prompt("Informe o motivo da liberação master (ex: Colaborador foi embora sem devolver):");
+            let motivoLiberacao = prompt("Informe o motivo da liberação master:");
             if (!motivoLiberacao || motivoLiberacao.trim() === "") {
-                motivoLiberacao = "Liberação forçada pela portaria (colaborador ausente)";
+                motivoLiberacao = "Liberação forçada pela portaria";
             }
 
             const dataCompleta = obterDataHoraAtual();
@@ -1035,7 +1066,7 @@
             });
 
             fecharModal();
-            alert(`Ambiente ${amb.nome} liberado com sucesso pelo Gestor! O laboratório está pronto para nova retirada.`);
+            alert(`Ambiente ${amb.nome} liberado com sucesso pelo Gestor!`);
         }
 
         function alternarManutencao() {
@@ -1069,26 +1100,20 @@
                 fecharModal();
                 alert('Ambiente liberado com sucesso!');
             } else {
-                let nomeResponsavelTecnico = prompt("Digite o nome do responsável pela manutenção:");
-                if (!nomeResponsavelTecnico || nomeResponsavelTecnico.trim() === "") {
-                    nomeResponsavelTecnico = "Manutenção";
-                } else {
-                    nomeResponsavelTecnico = "Manutenção / " + nomeResponsavelTecnico.trim();
-                }
-
+                let nomeResponsavelTecnico = prompt("Digite o nome do responsável pela manutenção:") || "Manutenção";
                 const obsManutencao = prompt("Motivo da Manutenção (Opcional):") || "Manutenção preventiva/corretiva";
                 const dataCompleta = obterDataHoraAtual();
 
                 db.ref('ambientes/' + amb.id).update({
                     status: 'manutencao',
-                    responsavel: nomeResponsavelTecnico,
+                    responsavel: "Manutenção / " + nomeResponsavelTecnico.trim(),
                     hora: '',
                     coocupantes: null
                 });
 
                 db.ref('historico').push({
                     ambiente: amb.nome,
-                    responsavel: nomeResponsavelTecnico,
+                    responsavel: "Manutenção / " + nomeResponsavelTecnico.trim(),
                     tipo: 'Manutenção',
                     dataHora: dataCompleta,
                     observacoes: obsManutencao
@@ -1138,10 +1163,8 @@
 
             emailjs.send("service_zl2au3c", "template_wsif6f4", templateParams)
                 .then(function(response) {
-                    console.log("SUCCESS!", response.status, response.text);
                     alert('Chamado registrado, enviado para o Romário e cópia encaminhada para o seu e-mail!');
                 }, function(error) {
-                    console.log("FAILED...", error);
                     alert('O chamado foi salvo no sistema, mas houve uma falha ao enviar o e-mail: ' + JSON.stringify(error));
                 });
 
@@ -1166,12 +1189,14 @@
                 return;
             }
 
-            if (tokenDigitado !== tokenGlobalDoBanco) {
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            const exigeToken = amb.exigeToken !== false;
+
+            if (exigeToken && tokenDigitado !== tokenGlobalDoBanco) {
                 alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
                 return;
             }
 
-            const amb = ambientes.find(a => a.id === ambienteAtualId);
             const agoraHoraMinuto = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = obterDataHoraAtual();
 
@@ -1197,10 +1222,11 @@
                 coocupantes: coocupantes
             });
 
+            const exigeToken = amb.exigeToken !== false;
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: responsavel,
-                tipo: 'Retirada',
+                tipo: exigeToken ? 'Retirada' : 'Acesso Registrado',
                 dataHora: dataCompleta,
                 observacoes: obs || '-',
                 arquivoNome: nomeArq || null,
@@ -1237,7 +1263,7 @@
             });
 
             fecharModal();
-            alert(`Colaborador. ${nomeSelecionado} adicionado com sucesso à sessão!`);
+            alert(`Colaborador ${nomeSelecionado} adicionado com sucesso à sessão!`);
         }
 
         function confirmarDevolucao() {
@@ -1247,6 +1273,7 @@
             const tokenDigitado = document.getElementById('input-token-devolucao').value.trim().toUpperCase();
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
+            const exigeToken = amb.exigeToken !== false;
 
             let coocupantes = amb.coocupantes || {};
             let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
@@ -1265,9 +1292,9 @@
             let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
             let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
 
-            if (restantesKeysTemp.length === 0) {
+            if (restantesKeysTemp.length === 0 && exigeToken) {
                 if (tokenDigitado !== tokenGlobalDoBanco) {
-                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável a encerrar o uso, valide o display no quadro.');
+                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável, valide o display no quadro.');
                     return;
                 }
             }
@@ -1288,6 +1315,7 @@
         function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, nomeArq, dadosArq) {
             delete coocupantes[chaveKey];
             let restantesKeys = Object.keys(coocupantes);
+            const exigeToken = amb.exigeToken !== false;
 
             const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
 
@@ -1296,7 +1324,7 @@
                     let proximoChaveKey = restantesKeys[0];
                     let proximoNome = coocupantes[proximoChaveKey];
 
-                    if (confirm(`Atenção: O(A) Colaborador(a). ${proximoNome} ainda está na sala. Deseja transferir a custódia principal da chave para ele(a)?`)) {
+                    if (confirm(`Atenção: O(A) Colaborador(a) ${proximoNome} ainda está na sala. Deseja transferir a custódia principal para ele(a)?`)) {
                         db.ref('ambientes/' + amb.id).update({
                             responsavel: proximoNome,
                             coocupantes: coocupantes
@@ -1307,7 +1335,7 @@
                     }
                 } else {
                     db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
-                    alert(`Saída de ${responsavelSaindo} registrada. O(A) Colaborador(a). ${amb.responsavel} continua como responsável principal do laboratório.`);
+                    alert(`Saída de ${responsavelSaindo} registrada.`);
                 }
 
                 db.ref('historico').push({
@@ -1332,15 +1360,15 @@
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
-                    tipo: 'Devolução',
+                    tipo: exigeToken ? 'Devolução' : 'Saída Registrada',
                     dataHora: dataCompleta,
-                    observacoes: obs || 'Chave devolvida à portaria',
+                    observacoes: obs || (exigeToken ? 'Chave devolvida à portaria' : 'Ambiente desocupado'),
                     arquivoNome: nomeArq || null,
                     arquivoData: dadosArq || null
                 });
 
                 fecharModal();
-                alert("Chave devolvida e laboratório liberado com sucesso no sistema!");
+                alert(exigeToken ? "Chave devolvida e laboratório liberado com sucesso!" : "Saída registrada com sucesso!");
             }
         }
 
@@ -1380,11 +1408,21 @@
 
         function adicionarAmbiente() {
             const nome = document.getElementById('novo-ambiente').value.trim();
+            const exigeToken = document.getElementById('novo-exige-token').checked;
+
             if (nome) {
                 let novaOrdem = ambientes.length + 1;
-                db.ref('ambientes').push({ nome: nome, status: 'disponivel', responsavel: '', hora: '', ordem: novaOrdem });
+                db.ref('ambientes').push({ 
+                    nome: nome, 
+                    status: 'disponivel', 
+                    responsavel: '', 
+                    hora: '', 
+                    ordem: novaOrdem,
+                    exigeToken: exigeToken 
+                });
                 document.getElementById('novo-ambiente').value = '';
-                alert(`Ambiente "${nome}" cadastrado!`);
+                document.getElementById('novo-exige-token').checked = true;
+                alert(`Ambiente "${nome}" cadastrado com sucesso!`);
             } else {
                 alert('Digite o nome do ambiente.');
             }
