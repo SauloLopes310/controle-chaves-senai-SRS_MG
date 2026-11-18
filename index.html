@@ -505,8 +505,9 @@
                 <!-- SUB-BLOCO RFID -->
                 <div id="sub-bloco-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
                     <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá no Leitor</strong>
-                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">O sistema identificará seu cadastro automaticamente.</p>
-                    <input type="text" id="input-rfid-leitura" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px;">
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">A leitura expira em 15 segundos por segurança.</p>
+                    <input type="text" id="input-rfid-leitura" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px; margin-bottom: 4px;">
+                    <div id="contador-rfid-retirada" style="font-size: 11px; font-weight: bold; color: #d97706;"></div>
                 </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
@@ -556,8 +557,9 @@
                 <!-- SUB-BLOCO DEVOLUÇÃO RFID -->
                 <div id="sub-bloco-dev-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
                     <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá para Devolução Presencial</strong>
-                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Leitura física no chaveiro: validação imediata sem token!</p>
-                    <input type="text" id="input-rfid-leitura-dev" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px;">
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Validação imediata sem token! Expira em 15 segundos.</p>
+                    <input type="text" id="input-rfid-leitura-dev" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px; margin-bottom: 4px;">
+                    <div id="contador-rfid-devolucao" style="font-size: 11px; font-weight: bold; color: #d97706;"></div>
                 </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
@@ -602,6 +604,8 @@
         let metodoDevolucaoAtual = 'senha'; 
         let rfidLidoModal = "";
         let rfidLidoDevolucao = "";
+        let timerExpiracaoRetirada = null;
+        let timerExpiracaoDevolucao = null;
 
         function obterDataHoraAtual() {
             const agora = new Date();
@@ -776,7 +780,7 @@
             db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (!listenerRfidAtivo) return;
                 const rfidLido = snapshot.val();
-                if (rfidLido) {
+                if (rfidLido && rfidLido.trim() !== "") {
                     inputRfid.value = rfidLido;
                     btnOuvir.textContent = "✅ Crachá Capturado!";
                     btnOuvir.style.backgroundColor = "#10b981";
@@ -819,13 +823,17 @@
             });
         }
 
-        // ALTERNÂNCIA DE MÉTODO NA RETIRADA
+        // ALTERNÂNCIA DE MÉTODO NA RETIRADA COM TEMPORIZADOR DE 15 SEGUNDOS
         function alternarMetodoAcesso(metodo) {
             metodoAcessoAtual = metodo;
             const subSenha = document.getElementById('sub-bloco-senha');
             const subRfid = document.getElementById('sub-bloco-rfid');
             const btnSenha = document.getElementById('aba-metodo-senha');
             const btnRfid = document.getElementById('aba-metodo-rfid');
+
+            clearInterval(timerExpiracaoRetirada);
+            rfidLidoModal = "";
+            document.getElementById('contador-rfid-retirada').textContent = "";
 
             if (metodo === 'senha') {
                 subSenha.style.display = 'block';
@@ -848,20 +856,29 @@
             db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (metodoAcessoAtual !== 'rfid') return;
                 const rfid = snapshot.val();
-                if (rfid) {
+                if (rfid && rfid.trim() !== "") {
                     rfidLidoModal = rfid;
-                    document.getElementById('input-rfid-leitura').value = "Crachá Reconhecido: " + rfid;
+                    const userObj = usuarios.find(u => u.rfid === rfid);
+                    const nomeIdentificado = userObj ? userObj.nome : "Não cadastrado";
+                    document.getElementById('input-rfid-leitura').value = `${nomeIdentificado} (${rfid})`;
+                    
+                    // Inicia contagem regressiva de 15 segundos para expiração de segurança
+                    iniciarContagemExpiracao('retirada');
                 }
             });
         }
 
-        // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO
+        // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO COM TEMPORIZADOR DE 15 SEGUNDOS
         function alternarMetodoDevolucao(metodo) {
             metodoDevolucaoAtual = metodo;
             const subSenha = document.getElementById('sub-bloco-dev-senha');
             const subRfid = document.getElementById('sub-bloco-dev-rfid');
             const btnSenha = document.getElementById('aba-metodo-dev-senha');
             const btnRfid = document.getElementById('aba-metodo-dev-rfid');
+
+            clearInterval(timerExpiracaoDevolucao);
+            rfidLidoDevolucao = "";
+            document.getElementById('contador-rfid-devolucao').textContent = "";
 
             if (metodo === 'senha') {
                 subSenha.style.display = 'block';
@@ -884,11 +901,54 @@
             db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (metodoDevolucaoAtual !== 'rfid') return;
                 const rfid = snapshot.val();
-                if (rfid) {
+                if (rfid && rfid.trim() !== "") {
                     rfidLidoDevolucao = rfid;
-                    document.getElementById('input-rfid-leitura-dev').value = "Crachá Reconhecido: " + rfid;
+                    const userObj = usuarios.find(u => u.rfid === rfid);
+                    const nomeIdentificado = userObj ? userObj.nome : "Não cadastrado";
+                    document.getElementById('input-rfid-leitura-dev').value = `${nomeIdentificado} (${rfid})`;
+                    
+                    // Inicia contagem regressiva de 15 segundos para expiração de segurança
+                    iniciarContagemExpiracao('devolucao');
                 }
             });
+        }
+
+        // CONTAGEM REGRESSIVA DE 15 SEGUNDOS PARA EXPIRAR O RFID NA TELA
+        function iniciarContagemExpiracao(tipo) {
+            let segundosRestantes = 15;
+            if (tipo === 'retirada') {
+                clearInterval(timerExpiracaoRetirada);
+                const elContador = document.getElementById('contador-rfid-retirada');
+                elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                
+                timerExpiracaoRetirada = setInterval(() => {
+                    segundosRestantes--;
+                    if (segundosRestantes > 0) {
+                        elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                    } else {
+                        clearInterval(timerExpiracaoRetirada);
+                        rfidLidoModal = "";
+                        document.getElementById('input-rfid-leitura').value = "Tempo expirado! Aproxime o crachá novamente.";
+                        elContador.textContent = "";
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerExpiracaoDevolucao);
+                const elContador = document.getElementById('contador-rfid-devolucao');
+                elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                
+                timerExpiracaoDevolucao = setInterval(() => {
+                    segundosRestantes--;
+                    if (segundosRestantes > 0) {
+                        elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                    } else {
+                        clearInterval(timerExpiracaoDevolucao);
+                        rfidLidoDevolucao = "";
+                        document.getElementById('input-rfid-leitura-dev').value = "Tempo expirado! Aproxime o crachá novamente.";
+                        elContador.textContent = "";
+                    }
+                }, 1000);
+            }
         }
 
         function moverAmbiente(index, direcao) {
@@ -1074,7 +1134,7 @@
                     }
 
                     let corTipo = 'var(--success)';
-                    if (h.tipo === 'Retirada' || h.tipo === 'Saída da Sessão' || h.tipo === 'Liberação Master (Portaria)') corTipo = 'var(--danger)';
+                    if (h.tipo === 'Retirada' || h.tipo === 'Retirada (RFID/Senha)' || h.tipo === 'Saída da Sessão' || h.tipo === 'Liberação Master (Portaria)') corTipo = 'var(--danger)';
                     if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação' || h.tipo === 'Solicitação de Manutenção') corTipo = 'var(--warning)';
 
                     tbody.innerHTML += `
@@ -1342,6 +1402,10 @@
         }
 
         function fecharModal() {
+            clearInterval(timerExpiracaoRetirada);
+            clearInterval(timerExpiracaoDevolucao);
+            rfidLidoModal = "";
+            rfidLidoDevolucao = "";
             document.getElementById('modal-acao').style.display = 'none';
         }
 
@@ -1371,7 +1435,7 @@
                 }
             } else {
                 if (!rfidLidoModal) {
-                    alert('Nenhum crachá RFID foi lido ainda! Aproxime o crachá do leitor.');
+                    alert('Nenhum crachá RFID válido no momento! Aproxime o crachá do leitor.');
                     return;
                 }
 
@@ -1419,6 +1483,8 @@
                 arquivoData: dadosArq || null
             });
 
+            // Limpa leitura RFID no banco e na sessão
+            db.ref('leitorPortaria/ultimoUID').set("");
             fecharModal();
         }
 
@@ -1490,9 +1556,9 @@
                     }
                 }
             } else {
-                // Devolução via RFID: como a pessoa está na frente do chaveiro, valida direto pelo crachá sem pedir token!
+                // Devolução via RFID: valida crachá dentro da janela de 15s, sem exigir token
                 if (!rfidLidoDevolucao) {
-                    alert('Nenhum crachá RFID foi lido ainda! Aproxime o crachá do leitor físico no chaveiro.');
+                    alert('Nenhum crachá RFID válido no momento! Aproxime o crachá do leitor físico no chaveiro.');
                     return;
                 }
 
@@ -1533,6 +1599,9 @@
             const exigeToken = amb.exigeToken !== false;
 
             const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
+
+            // Limpa leitura RFID no banco imediatamente após uso
+            db.ref('leitorPortaria/ultimoUID').set("");
 
             if (restantesKeys.length > 0) {
                 if (eraOResponsavelPrincipal) {
