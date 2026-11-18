@@ -399,6 +399,17 @@
             <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">Código atual para validação presencial na retirada/devolução.</p>
         </div>
 
+        <!-- PAINEL DE CADASTRO RÁPIDO DE RFID -->
+        <div class="painel-admin" style="background: #fdf4ff; border-color: #f5d0fe;">
+            <strong style="color: #86198f;">💳 Cadastrar Crachá RFID</strong>
+            <p style="font-size: 11px; color: #64748b; margin: 0 0 5px 0;">1. Clique em 'Ouvir Leitor'<br>2. Aproxime o crachá no leitor</p>
+            <button class="btn" id="btn-ouvir-rfid" style="background-color: #a855f7;" onclick="iniciarCapturaRFID()">📡 Ouvir Leitor RFID</button>
+            <input type="text" id="rfid-capturado" placeholder="Aguardando aproximação..." readonly style="background: #f1f5f9; text-align: center; font-weight: bold; color: #6b21a8; margin-top: 5px;">
+            <input type="text" id="novo-usuario-rfid" placeholder="Nome do Colaborador..." style="margin-top: 5px;">
+            <input type="password" id="nova-senha-rfid" placeholder="Senha / PIN Inicial..." style="margin-top: 5px;">
+            <button class="btn btn-success" style="margin-top: 8px; background-color: #9333ea;" onclick="salvarColaboradorComRFID()">Salvar Colaborador com Crachá</button>
+        </div>
+
         <div class="painel-admin">
             <strong>➕ Novo Ambiente</strong>
             <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
@@ -419,7 +430,7 @@
         </div>
 
         <div class="painel-admin">
-            <strong>👤 Novo Colaborador</strong>
+            <strong>👤 Novo Colaborador (Senha)</strong>
             <input type="text" id="novo-usuario" placeholder="Nome do Colaborador...">
             <input type="password" id="nova-senha" placeholder="Senha / PIN (ex: 123)">
             <button class="btn" onclick="adicionarUsuario()">Cadastrar com Senha</button>
@@ -452,7 +463,7 @@
         </div>
     </div>
 
-    <!-- Modal de Interação de Ambientes (Com ou Sem Token) -->
+    <!-- Modal de Interação de Ambientes (Com ou Sem Token e RFID) -->
     <div id="modal-acao" class="modal">
         <div class="modal-content">
             <h3 id="modal-titulo">Gerenciar Ambiente</h3>
@@ -472,16 +483,30 @@
 
             <!-- BLOCO DE RETIRADA / ENTRADA -->
             <div id="bloco-retirada" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável Principal:</label>
-                <select id="select-responsavel-retirada"></select>
-                
-                <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
-                
-                <!-- CAMPO CONDICIONAL DE TOKEN -->
-                <div id="grupo-token-retirada">
-                    <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
-                    <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn" id="aba-metodo-senha" style="flex: 1; background: #005691;" onclick="alternarMetodoAcesso('senha')">🔑 Senha & Token</button>
+                    <button class="btn" id="aba-metodo-rfid" style="flex: 1; background: #64748b;" onclick="alternarMetodoAcesso('rfid')">💳 Crachá RFID</button>
+                </div>
+
+                <!-- SUB-BLOCO SENHA -->
+                <div id="sub-bloco-senha">
+                    <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável Principal:</label>
+                    <select id="select-responsavel-retirada"></select>
+                    
+                    <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
+                    <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
+                    
+                    <div id="grupo-token-retirada">
+                        <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
+                        <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                    </div>
+                </div>
+
+                <!-- SUB-BLOCO RFID -->
+                <div id="sub-bloco-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+                    <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá no Leitor</strong>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">O sistema identificará seu cadastro automaticamente.</p>
+                    <input type="text" id="input-rfid-leitura" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px;">
                 </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações / Turma:</label>
@@ -509,16 +534,30 @@
 
             <!-- BLOCO DE DEVOLUÇÃO / SAÍDA -->
             <div id="bloco-devolucao" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
-                <select id="select-responsavel-devolucao"></select>
-                
-                <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
-                <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
-                
-                <!-- CAMPO CONDICIONAL DE TOKEN NA DEVOLUÇÃO -->
-                <div id="grupo-token-devolucao">
-                    <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
-                    <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn" id="aba-metodo-dev-senha" style="flex: 1; background: #005691;" onclick="alternarMetodoDevolucao('senha')">🔑 Senha & Token</button>
+                    <button class="btn" id="aba-metodo-dev-rfid" style="flex: 1; background: #64748b;" onclick="alternarMetodoDevolucao('rfid')">💳 Crachá RFID</button>
+                </div>
+
+                <!-- SUB-BLOCO DEVOLUÇÃO SENHA -->
+                <div id="sub-bloco-dev-senha">
+                    <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
+                    <select id="select-responsavel-devolucao"></select>
+                    
+                    <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
+                    <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
+                    
+                    <div id="grupo-token-devolucao">
+                        <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
+                        <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
+                    </div>
+                </div>
+
+                <!-- SUB-BLOCO DEVOLUÇÃO RFID -->
+                <div id="sub-bloco-dev-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+                    <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá para Devolução Presencial</strong>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Leitura física no chaveiro: validação imediata sem token!</p>
+                    <input type="text" id="input-rfid-leitura-dev" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px;">
                 </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Observações:</label>
@@ -558,8 +597,12 @@
         let historico = [];
         let ambienteAtualId = null;
         let tokenGlobalDoBanco = "";
+        let listenerRfidAtivo = false;
+        let metodoAcessoAtual = 'senha'; 
+        let metodoDevolucaoAtual = 'senha'; 
+        let rfidLidoModal = "";
+        let rfidLidoDevolucao = "";
 
-        // FUNÇÃO PADRÃO PARA UNIFICAR DATA E HORA COM SEGUNDOS
         function obterDataHoraAtual() {
             const agora = new Date();
             const dia = String(agora.getDate()).padStart(2, '0');
@@ -621,7 +664,7 @@
                 { nome: "Roniam", senha: "123", email: "" }, { nome: "Ramona", senha: "123", email: "" },
                 { nome: "Jackson", senha: "123", email: "" }, { nome: "Alberto", senha: "123", email: "" },
                 { nome: "Luiz", senha: "123", email: "" }, { nome: "Felipe", senha: "123", email: "" },
-                { nome: "Saulo", senha: "123", email: "" }, { nome: "Gil", senha: "123", email: "" }
+                { nome: "Saulo", senha: "123", email: "", rfid: "E333590C" }, { nome: "Gil", senha: "123", email: "" }
             ];
             usuariosIniciais.forEach(u => db.ref('usuarios').push(u));
 
@@ -670,7 +713,6 @@
             }
         }
 
-        // FUNÇÃO DE ATUALIZAÇÃO DE DADOS E SENHA COM TRAVA DE AMBIENTE OCUPADO
         function atualizarDadosUsuario() {
             const nomeSelecionado = document.getElementById('select-usuario-troca-senha').value;
             const novoNome = document.getElementById('input-novo-nome-usuario').value.trim();
@@ -717,6 +759,134 @@
                 } else {
                     alert(`Dados de ${novoNome} atualizados com sucesso!`);
                     fecharModalTrocaSenha();
+                }
+            });
+        }
+
+        // CADASTRO RÁPIDO DE RFID
+        function iniciarCapturaRFID() {
+            const inputRfid = document.getElementById('rfid-capturado');
+            const btnOuvir = document.getElementById('btn-ouvir-rfid');
+            
+            inputRfid.value = "Aproxime o cartão do leitor...";
+            btnOuvir.textContent = "⏳ Ouvindo leitor...";
+            btnOuvir.style.backgroundColor = "#eab308";
+            listenerRfidAtivo = true;
+
+            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+                if (!listenerRfidAtivo) return;
+                const rfidLido = snapshot.val();
+                if (rfidLido) {
+                    inputRfid.value = rfidLido;
+                    btnOuvir.textContent = "✅ Crachá Capturado!";
+                    btnOuvir.style.backgroundColor = "#10b981";
+                    listenerRfidAtivo = false;
+                }
+            });
+        }
+
+        function salvarColaboradorComRFID() {
+            const rfid = document.getElementById('rfid-capturado').value.trim();
+            const nome = document.getElementById('novo-usuario-rfid').value.trim();
+            const senha = document.getElementById('nova-senha-rfid').value.trim();
+
+            if (!rfid || rfid.includes("Aproxime") || !nome || !senha) {
+                alert("Por favor, clique em 'Ouvir Leitor', aproxime o crachá e preencha o Nome e a Senha!");
+                return;
+            }
+
+            if (usuarios.some(u => u.rfid === rfid)) {
+                alert("Atenção: Este crachá RFID já está vinculado a outro colaborador!");
+                return;
+            }
+
+            db.ref('usuarios').push({
+                nome: nome,
+                senha: senha,
+                email: "",
+                rfid: rfid
+            }, (error) => {
+                if (error) {
+                    alert("Erro ao cadastrar: " + error.message);
+                } else {
+                    alert(`Colaborador(a) ${nome} cadastrado(a) com sucesso com o crachá RFID!`);
+                    document.getElementById('rfid-capturado').value = '';
+                    document.getElementById('novo-usuario-rfid').value = '';
+                    document.getElementById('nova-senha-rfid').value = '';
+                    document.getElementById('btn-ouvir-rfid').textContent = "📡 Ouvir Leitor RFID";
+                    document.getElementById('btn-ouvir-rfid').style.backgroundColor = "#a855f7";
+                }
+            });
+        }
+
+        // ALTERNÂNCIA DE MÉTODO NA RETIRADA
+        function alternarMetodoAcesso(metodo) {
+            metodoAcessoAtual = metodo;
+            const subSenha = document.getElementById('sub-bloco-senha');
+            const subRfid = document.getElementById('sub-bloco-rfid');
+            const btnSenha = document.getElementById('aba-metodo-senha');
+            const btnRfid = document.getElementById('aba-metodo-rfid');
+
+            if (metodo === 'senha') {
+                subSenha.style.display = 'block';
+                subRfid.style.display = 'none';
+                btnSenha.style.background = '#005691';
+                btnRfid.style.background = '#64748b';
+            } else {
+                subSenha.style.display = 'none';
+                subRfid.style.display = 'block';
+                btnRfid.style.background = '#86198f';
+                btnSenha.style.background = '#64748b';
+                
+                document.getElementById('input-rfid-leitura').value = "Aproxime o crachá no leitor...";
+                ouvirLeitorParaRetirada();
+            }
+        }
+
+        function ouvirLeitorParaRetirada() {
+            rfidLidoModal = "";
+            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+                if (metodoAcessoAtual !== 'rfid') return;
+                const rfid = snapshot.val();
+                if (rfid) {
+                    rfidLidoModal = rfid;
+                    document.getElementById('input-rfid-leitura').value = "Crachá Reconhecido: " + rfid;
+                }
+            });
+        }
+
+        // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO
+        function alternarMetodoDevolucao(metodo) {
+            metodoDevolucaoAtual = metodo;
+            const subSenha = document.getElementById('sub-bloco-dev-senha');
+            const subRfid = document.getElementById('sub-bloco-dev-rfid');
+            const btnSenha = document.getElementById('aba-metodo-dev-senha');
+            const btnRfid = document.getElementById('aba-metodo-dev-rfid');
+
+            if (metodo === 'senha') {
+                subSenha.style.display = 'block';
+                subRfid.style.display = 'none';
+                btnSenha.style.background = '#005691';
+                btnRfid.style.background = '#64748b';
+            } else {
+                subSenha.style.display = 'none';
+                subRfid.style.display = 'block';
+                btnRfid.style.background = '#86198f';
+                btnSenha.style.background = '#64748b';
+                
+                document.getElementById('input-rfid-leitura-dev').value = "Aproxime o crachá no leitor...";
+                ouvirLeitorParaDevolucao();
+            }
+        }
+
+        function ouvirLeitorParaDevolucao() {
+            rfidLidoDevolucao = "";
+            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+                if (metodoDevolucaoAtual !== 'rfid') return;
+                const rfid = snapshot.val();
+                if (rfid) {
+                    rfidLidoDevolucao = rfid;
+                    document.getElementById('input-rfid-leitura-dev').value = "Crachá Reconhecido: " + rfid;
                 }
             });
         }
@@ -804,7 +974,6 @@
             selectAcao.value = acaoAtual;
         }
 
-        // SEPARAÇÃO DO DASHBOARD EM DUAS GRIDS: COM TOKEN E LIVRES (SEM TOKEN)
         function renderizar() {
             const gridChaves = document.getElementById('grid-chaves');
             const gridLivres = document.getElementById('grid-livres');
@@ -814,7 +983,7 @@
             ambientes.forEach(amb => {
                 const card = document.createElement('div');
                 card.className = `chave-card ${amb.status}`;
-                const exigeToken = amb.exigeToken !== false; // Padrão é true
+                const exigeToken = amb.exigeToken !== false;
 
                 if (amb.status === 'disponivel') {
                     card.innerHTML = `
@@ -992,8 +1161,9 @@
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
                 info.textContent = exigeToken 
-                    ? "Informe seus dados, senha e o código TOLKEN de 2 letras para retirar a chave."
-                    : "Informe seus dados e senha para registrar presença neste ambiente livre.";
+                    ? "Informe seus dados, senha e token ou aproxime o seu crachá RFID."
+                    : "Registre sua presença neste ambiente livre.";
+                alternarMetodoAcesso('senha');
                 blocoRetirada.style.display = 'block';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'none';
@@ -1005,7 +1175,8 @@
                 blocoDevolucao.style.display = 'none';
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'devolver') {
-                info.textContent = `Ambiente em uso. Selecione o colaborador que está saindo:`;
+                info.textContent = `Ambiente em uso. Informe sua senha ou aproxime seu crachá no chaveiro:`;
+                alternarMetodoDevolucao('senha');
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'none';
                 blocoDevolucao.style.display = 'block';
@@ -1033,7 +1204,6 @@
             document.getElementById('modal-acao').style.display = 'flex';
         }
 
-        // FUNÇÃO DE LIBERAÇÃO MASTER POR AMBIENTE
         function liberacaoMasterAmbiente() {
             const senhaAdmin = prompt("Digite a senha de administrador (#13371) para forçar a liberação deste ambiente:");
             if (senhaAdmin !== "#13371") {
@@ -1176,41 +1346,57 @@
         }
 
         function confirmarRetirada() {
-            const nomeSelecionado = document.getElementById('select-responsavel-retirada').value;
-            const senhaDigitada = document.getElementById('input-senha-retirada').value.trim();
-            const tokenDigitado = document.getElementById('input-token-retirada').value.trim().toUpperCase();
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
+            const exigeToken = amb.exigeToken !== false;
             const observacoes = document.getElementById('input-obs-retirada').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-retirada');
 
-            const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
+            let usuarioEncontrado = null;
 
-            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha pessoal incorreta!');
-                return;
+            if (metodoAcessoAtual === 'senha') {
+                const nomeSelecionado = document.getElementById('select-responsavel-retirada').value;
+                const senhaDigitada = document.getElementById('input-senha-retirada').value.trim();
+                const tokenDigitado = document.getElementById('input-token-retirada').value.trim().toUpperCase();
+
+                usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
+
+                if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                    alert('Senha pessoal incorreta!');
+                    return;
+                }
+
+                if (exigeToken && tokenDigitado !== tokenGlobalDoBanco) {
+                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
+                    return;
+                }
+            } else {
+                if (!rfidLidoModal) {
+                    alert('Nenhum crachá RFID foi lido ainda! Aproxime o crachá do leitor.');
+                    return;
+                }
+
+                usuarioEncontrado = usuarios.find(u => u.rfid === rfidLidoModal);
+                if (!usuarioEncontrado) {
+                    alert(`Crachá RFID (${rfidLidoModal}) não cadastrado no sistema! Cadastre-o primeiro no Painel de Gestão.`);
+                    return;
+                }
             }
 
-            const amb = ambientes.find(a => a.id === ambienteAtualId);
-            const exigeToken = amb.exigeToken !== false;
-
-            if (exigeToken && tokenDigitado !== tokenGlobalDoBanco) {
-                alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Verifique o display junto ao quadro de chaves.');
-                return;
-            }
-
+            const nomeResponsavel = usuarioEncontrado.nome;
             const agoraHoraMinuto = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dataCompleta = obterDataHoraAtual();
 
             let coocupantesObj = {};
-            coocupantesObj[nomeSelecionado.replace(/[^a-zA-Z0-9]/g, '_')] = nomeSelecionado;
+            coocupantesObj[nomeResponsavel.replace(/[^a-zA-Z0-9]/g, '_')] = nomeResponsavel;
 
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
+                    salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                salvarRetiradaFirebase(amb, nomeSelecionado, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, null, null);
+                salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, null, null);
             }
         }
 
@@ -1226,7 +1412,7 @@
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: responsavel,
-                tipo: exigeToken ? 'Retirada' : 'Acesso Registrado',
+                tipo: exigeToken ? 'Retirada (RFID/Senha)' : 'Acesso Registrado',
                 dataHora: dataCompleta,
                 observacoes: obs || '-',
                 arquivoNome: nomeArq || null,
@@ -1268,37 +1454,66 @@
 
         function confirmarDevolucao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            const responsavelSaindo = document.getElementById('select-responsavel-devolucao').value;
-            const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
             const tokenDigitado = document.getElementById('input-token-devolucao').value.trim().toUpperCase();
             const observacoes = document.getElementById('input-obs-devolucao').value.trim();
             const arquivoInput = document.getElementById('input-arquivo-devolucao');
             const exigeToken = amb.exigeToken !== false;
 
-            let coocupantes = amb.coocupantes || {};
-            let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
-            
-            if (!estaNaSala) {
-                alert('Acesso negado: Este usuário não está registrado como participante ativo nesta sala!');
-                return;
-            }
+            let usuarioEncontrado = null;
+            let responsavelSaindo = "";
 
-            const usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
-            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha incorreta para o colaborador selecionado!');
-                return;
-            }
+            if (metodoDevolucaoAtual === 'senha') {
+                responsavelSaindo = document.getElementById('select-responsavel-devolucao').value;
+                const senhaDigitada = document.getElementById('input-senha-devolucao').value.trim();
 
-            let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
-            let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
+                usuarioEncontrado = usuarios.find(u => u.nome === responsavelSaindo);
+                if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                    alert('Senha incorreta para o colaborador selecionado!');
+                    return;
+                }
 
-            if (restantesKeysTemp.length === 0 && exigeToken) {
-                if (tokenDigitado !== tokenGlobalDoBanco) {
-                    alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável, valide o display no quadro.');
+                let coocupantes = amb.coocupantes || {};
+                let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
+                
+                if (!estaNaSala) {
+                    alert('Acesso negado: Este usuário não está registrado como participante ativo nesta sala!');
+                    return;
+                }
+
+                let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
+                let restantesKeysTemp = Object.keys(coocupantes).filter(k => k !== chaveKey);
+
+                if (restantesKeysTemp.length === 0 && exigeToken) {
+                    if (tokenDigitado !== tokenGlobalDoBanco) {
+                        alert('Código presencial TOLKEN de 2 letras incorreto ou expirado! Como é o último responsável, valide o display no quadro.');
+                        return;
+                    }
+                }
+            } else {
+                // Devolução via RFID: como a pessoa está na frente do chaveiro, valida direto pelo crachá sem pedir token!
+                if (!rfidLidoDevolucao) {
+                    alert('Nenhum crachá RFID foi lido ainda! Aproxime o crachá do leitor físico no chaveiro.');
+                    return;
+                }
+
+                usuarioEncontrado = usuarios.find(u => u.rfid === rfidLidoDevolucao);
+                if (!usuarioEncontrado) {
+                    alert(`Crachá RFID (${rfidLidoDevolucao}) não cadastrado no sistema!`);
+                    return;
+                }
+                responsavelSaindo = usuarioEncontrado.nome;
+
+                let coocupantes = amb.coocupantes || {};
+                let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
+                
+                if (!estaNaSala) {
+                    alert(`Acesso negado: O usuário ${responsavelSaindo} do crachá apresentado não está registrado nesta sala!`);
                     return;
                 }
             }
 
+            let coocupantes = amb.coocupantes || {};
+            let chaveKey = responsavelSaindo.replace(/[^a-zA-Z0-9]/g, '_');
             const dataCompleta = obterDataHoraAtual();
 
             if (arquivoInput.files && arquivoInput.files[0]) {
@@ -1360,7 +1575,7 @@
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
-                    tipo: exigeToken ? 'Devolução' : 'Saída Registrada',
+                    tipo: exigeToken ? 'Devolução (RFID/Senha)' : 'Saída Registrada',
                     dataHora: dataCompleta,
                     observacoes: obs || (exigeToken ? 'Chave devolvida à portaria' : 'Ambiente desocupado'),
                     arquivoNome: nomeArq || null,
