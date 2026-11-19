@@ -1166,24 +1166,36 @@
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
                     }
 
-                    let corTipo = 'var(--success)';
-                    const tipoTexto = (h.tipo || '').toLowerCase();
+                 
 
-                    if (
-                        tipoTexto.includes('co-ocupação') ||
-                        tipoTexto.includes('saída da sessão') ||
-                        tipoTexto.includes('manutenção') ||
-                        tipoTexto.includes('solicitação de manutenção')
-                    ) {
-                        corTipo = 'var(--warning)';
-                    } else if (
-                        tipoTexto.includes('retirada') ||
-                        tipoTexto.includes('devolução') ||
-                        tipoTexto.includes('saída registrada') ||
-                        tipoTexto.includes('liberação master')
-                    ) {
-                        corTipo = 'var(--danger)';
-                    }
+
+let corTipo = 'var(--success)';
+const tipoTexto = (h.tipo || '').toLowerCase();
+
+if (
+    tipoTexto.includes('co-ocupação') ||
+    tipoTexto.includes('saída da sessão') ||
+    tipoTexto.includes('manutenção') ||
+    tipoTexto.includes('solicitação de manutenção')
+) {
+    corTipo = 'var(--warning)'; // Laranja para co-ocupação e saída da sessão
+} else if (
+    tipoTexto.includes('devolução') ||
+    tipoTexto.includes('saída registrada') ||
+    tipoTexto.includes('liberação master')
+) {
+    corTipo = 'var(--danger)'; // Vermelho para devolução / saída
+} else if (
+    tipoTexto.includes('retirada') ||
+    tipoTexto.includes('acesso registrado')
+) {
+    corTipo = 'var(--success)'; // Verde para retirada
+}
+
+
+
+
+
 
                     tbody.innerHTML += `
                         <tr>
