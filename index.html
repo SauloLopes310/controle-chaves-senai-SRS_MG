@@ -413,7 +413,7 @@
         <div class="painel-admin">
             <strong>➕ Novo Ambiente</strong>
             <input type="text" id="novo-ambiente" placeholder="Ex: Lab de Pneumática (109)">
-            
+
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 12px;">
                 <input type="checkbox" id="novo-exige-token" checked style="width: auto; margin: 0;">
                 <label for="novo-exige-token" style="cursor: pointer; font-weight: 600;">Exige Token/Chave na Portaria</label>
@@ -442,7 +442,7 @@
         <div class="modal-content">
             <h3 style="color: #0284c7;">⚙️ Meus Dados / Informações Pessoais</h3>
             <p style="font-size: 13px; color: #64748b;">Selecione o seu nome, atualize seus dados e informe sua senha atual para confirmar:</p>
-            
+
             <label style="font-size: 12px; font-weight: bold;">Selecione o seu Nome:</label>
             <select id="select-usuario-troca-senha" onchange="preencherDadosUsuarioModal()"></select>
 
@@ -468,7 +468,7 @@
         <div class="modal-content">
             <h3 id="modal-titulo">Gerenciar Ambiente</h3>
             <p id="modal-info" style="font-size: 13px; color: #64748b;"></p>
-            
+
             <div id="bloco-admin-status" style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: none;">
                 <label style="font-size: 12px; font-weight: bold; color: var(--warning);">Controle de Manutenção:</label>
                 <button class="btn btn-warning" id="btn-toggle-manutencao" style="width: 100%; margin-top: 5px;" onclick="alternarManutencao()">⚠️ Colocar em Manutenção</button>
@@ -492,10 +492,10 @@
                 <div id="sub-bloco-senha">
                     <label style="font-size: 12px; font-weight: bold;">Selecione o Responsável Principal:</label>
                     <select id="select-responsavel-retirada"></select>
-                    
+
                     <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
                     <input type="password" id="input-senha-retirada" placeholder="Senha do colaborador">
-                    
+
                     <div id="grupo-token-retirada">
                         <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras:</label>
                         <input type="text" id="input-token-retirada" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
@@ -505,7 +505,7 @@
                 <!-- SUB-BLOCO RFID -->
                 <div id="sub-bloco-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
                     <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá no Leitor</strong>
-                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">A leitura expira em 15 segundos por segurança.</p>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">A leitura expira em 10 segundos por segurança.</p>
                     <input type="text" id="input-rfid-leitura" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px; margin-bottom: 4px;">
                     <div id="contador-rfid-retirada" style="font-size: 11px; font-weight: bold; color: #d97706;"></div>
                 </div>
@@ -515,7 +515,7 @@
 
                 <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
                 <input type="file" id="input-arquivo-retirada" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
-                
+
                 <button class="btn btn-success" style="width: 100%; margin-top: 5px;" onclick="confirmarRetirada()">Confirmar Acesso / Retirada</button>
             </div>
 
@@ -523,13 +523,13 @@
             <div id="bloco-coocupar" style="display: none;">
                 <label style="font-size: 12px; font-weight: bold;">Seu Nome (Colaborador / Projeto):</label>
                 <select id="select-responsavel-coocupar"></select>
-                
+
                 <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
                 <input type="password" id="input-senha-coocupar" placeholder="Senha do colaborador">
 
                 <label style="font-size: 12px; font-weight: bold;">Turma / Projeto / Motivo:</label>
                 <textarea id="input-obs-coocupar" placeholder="Ex: Projeto Integrador / Pesquisa IoT..."></textarea>
-                
+
                 <button class="btn btn-warning" style="width: 100%; margin-top: 5px;" onclick="confirmarCoocupacao()">Entrar na Sessão (Co-ocupar)</button>
             </div>
 
@@ -544,10 +544,10 @@
                 <div id="sub-bloco-dev-senha">
                     <label style="font-size: 12px; font-weight: bold;">Quem está a sair / devolver:</label>
                     <select id="select-responsavel-devolucao"></select>
-                    
+
                     <label style="font-size: 12px; font-weight: bold;">Senha do Colaborador:</label>
                     <input type="password" id="input-senha-devolucao" placeholder="Senha pessoal">
-                    
+
                     <div id="grupo-token-devolucao">
                         <label style="font-size: 12px; font-weight: bold; color: #0284c7;">Código Presencial TOLKEN de 2 Letras <span id="aviso-token-opcional" style="font-size: 10px; color:#64748b;">(Obrigatório se for o último a sair)</span>:</label>
                         <input type="text" id="input-token-devolucao" placeholder="Ex: A9" style="text-transform: uppercase;" maxlength="2">
@@ -557,7 +557,7 @@
                 <!-- SUB-BLOCO DEVOLUÇÃO RFID -->
                 <div id="sub-bloco-dev-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
                     <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá para Devolução Presencial</strong>
-                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Validação imediata sem token! Expira em 15 segundos.</p>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Validação imediata sem token! Expira em 10 segundos.</p>
                     <input type="text" id="input-rfid-leitura-dev" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px; margin-bottom: 4px;">
                     <div id="contador-rfid-devolucao" style="font-size: 11px; font-weight: bold; color: #d97706;"></div>
                 </div>
@@ -567,7 +567,7 @@
 
                 <label style="font-size: 12px; font-weight: bold;">Anexar Arquivo/Foto (Opcional):</label>
                 <input type="file" id="input-arquivo-devolucao" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; padding: 5px;">
-                
+
                 <button class="btn btn-success" id="btn-executar-devolucao" style="width: 100%; margin-top: 5px;" onclick="confirmarDevolucao()">Finalizar / Sair</button>
             </div>
 
@@ -594,14 +594,19 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        const CODIGO_RFID_ZERADO = "00000000";
+
         let usuarios = [];
         let ambientes = [];
         let historico = [];
         let ambienteAtualId = null;
         let tokenGlobalDoBanco = "";
         let listenerRfidAtivo = false;
-        let metodoAcessoAtual = 'senha'; 
-        let metodoDevolucaoAtual = 'senha'; 
+        let listenerCadastroRef = null;
+        let listenerRetiradaRef = null;
+        let listenerDevolucaoRef = null;
+        let metodoAcessoAtual = 'senha';
+        let metodoDevolucaoAtual = 'senha';
         let rfidLidoModal = "";
         let rfidLidoDevolucao = "";
         let timerExpiracaoRetirada = null;
@@ -616,6 +621,33 @@
             const minuto = String(agora.getMinutes()).padStart(2, '0');
             const segundo = String(agora.getSeconds()).padStart(2, '0');
             return `${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`;
+        }
+
+        function zerarRFIDNoBanco() {
+            db.ref('leitorPortaria/ultimoUID').set(CODIGO_RFID_ZERADO);
+        }
+
+        function limparEscutaRFID() {
+            clearInterval(timerExpiracaoRetirada);
+            clearInterval(timerExpiracaoDevolucao);
+            rfidLidoModal = "";
+            rfidLidoDevolucao = "";
+
+            if (listenerRetiradaRef) {
+                db.ref('leitorPortaria/ultimoUID').off('value', listenerRetiradaRef);
+                listenerRetiradaRef = null;
+            }
+            if (listenerDevolucaoRef) {
+                db.ref('leitorPortaria/ultimoUID').off('value', listenerDevolucaoRef);
+                listenerDevolucaoRef = null;
+            }
+        }
+
+        function formatarIdentificacaoRFID(rfid) {
+            const uidLimpo = (rfid || "").trim().toUpperCase();
+            const userObj = usuarios.find(u => (u.rfid || "").trim().toUpperCase() === uidLimpo);
+            const nomeIdentificado = userObj && userObj.nome ? userObj.nome : "Não cadastrado";
+            return `${nomeIdentificado} - ${uidLimpo}`;
         }
 
         db.ref('tokenSeguranca/codigo').on('value', (snapshot) => {
@@ -753,10 +785,10 @@
 
             const senhaFinal = novaSenha !== "" ? novaSenha : userObj.senha;
 
-            db.ref('usuarios/' + userObj.id).update({ 
-                nome: novoNome, 
-                email: novoEmail, 
-                senha: senhaFinal 
+            db.ref('usuarios/' + userObj.id).update({
+                nome: novoNome,
+                email: novoEmail,
+                senha: senhaFinal
             }, (error) => {
                 if (error) {
                     alert("Erro ao atualizar os dados: " + error.message);
@@ -771,16 +803,22 @@
         function iniciarCapturaRFID() {
             const inputRfid = document.getElementById('rfid-capturado');
             const btnOuvir = document.getElementById('btn-ouvir-rfid');
-            
+
+            if (listenerCadastroRef) {
+                db.ref('leitorPortaria/ultimoUID').off('value', listenerCadastroRef);
+                listenerCadastroRef = null;
+            }
+
             inputRfid.value = "Aproxime o cartão do leitor...";
             btnOuvir.textContent = "⏳ Ouvindo leitor...";
             btnOuvir.style.backgroundColor = "#eab308";
             listenerRfidAtivo = true;
+            zerarRFIDNoBanco();
 
-            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+            listenerCadastroRef = db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (!listenerRfidAtivo) return;
-                const rfidLido = snapshot.val();
-                if (rfidLido && rfidLido.trim() !== "") {
+                const rfidLido = (snapshot.val() || "").trim().toUpperCase();
+                if (rfidLido && rfidLido !== CODIGO_RFID_ZERADO) {
                     inputRfid.value = rfidLido;
                     btnOuvir.textContent = "✅ Crachá Capturado!";
                     btnOuvir.style.backgroundColor = "#10b981";
@@ -790,16 +828,16 @@
         }
 
         function salvarColaboradorComRFID() {
-            const rfid = document.getElementById('rfid-capturado').value.trim();
+            const rfid = document.getElementById('rfid-capturado').value.trim().toUpperCase();
             const nome = document.getElementById('novo-usuario-rfid').value.trim();
             const senha = document.getElementById('nova-senha-rfid').value.trim();
 
-            if (!rfid || rfid.includes("Aproxime") || !nome || !senha) {
+            if (!rfid || rfid.includes("APROXIME") || rfid === CODIGO_RFID_ZERADO || !nome || !senha) {
                 alert("Por favor, clique em 'Ouvir Leitor', aproxime o crachá e preencha o Nome e a Senha!");
                 return;
             }
 
-            if (usuarios.some(u => u.rfid === rfid)) {
+            if (usuarios.some(u => (u.rfid || "").toUpperCase() === rfid)) {
                 alert("Atenção: Este crachá RFID já está vinculado a outro colaborador!");
                 return;
             }
@@ -819,11 +857,12 @@
                     document.getElementById('nova-senha-rfid').value = '';
                     document.getElementById('btn-ouvir-rfid').textContent = "📡 Ouvir Leitor RFID";
                     document.getElementById('btn-ouvir-rfid').style.backgroundColor = "#a855f7";
+                    zerarRFIDNoBanco();
                 }
             });
         }
 
-        // ALTERNÂNCIA DE MÉTODO NA RETIRADA COM TEMPORIZADOR DE 15 SEGUNDOS
+        // ALTERNÂNCIA DE MÉTODO NA RETIRADA COM TEMPORIZADOR DE 10 SEGUNDOS
         function alternarMetodoAcesso(metodo) {
             metodoAcessoAtual = metodo;
             const subSenha = document.getElementById('sub-bloco-senha');
@@ -831,8 +870,7 @@
             const btnSenha = document.getElementById('aba-metodo-senha');
             const btnRfid = document.getElementById('aba-metodo-rfid');
 
-            clearInterval(timerExpiracaoRetirada);
-            rfidLidoModal = "";
+            limparEscutaRFID();
             document.getElementById('contador-rfid-retirada').textContent = "";
 
             if (metodo === 'senha') {
@@ -845,30 +883,27 @@
                 subRfid.style.display = 'block';
                 btnRfid.style.background = '#86198f';
                 btnSenha.style.background = '#64748b';
-                
+
                 document.getElementById('input-rfid-leitura').value = "Aproxime o crachá no leitor...";
+                zerarRFIDNoBanco();
                 ouvirLeitorParaRetirada();
             }
         }
 
         function ouvirLeitorParaRetirada() {
             rfidLidoModal = "";
-            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+            listenerRetiradaRef = db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (metodoAcessoAtual !== 'rfid') return;
-                const rfid = snapshot.val();
-                if (rfid && rfid.trim() !== "") {
+                const rfid = (snapshot.val() || "").trim().toUpperCase();
+                if (rfid && rfid !== CODIGO_RFID_ZERADO) {
                     rfidLidoModal = rfid;
-                    const userObj = usuarios.find(u => u.rfid === rfid);
-                    const nomeIdentificado = userObj ? userObj.nome : "Não cadastrado";
-                    document.getElementById('input-rfid-leitura').value = `${nomeIdentificado} (${rfid})`;
-                    
-                    // Inicia contagem regressiva de 15 segundos para expiração de segurança
+                    document.getElementById('input-rfid-leitura').value = formatarIdentificacaoRFID(rfid);
                     iniciarContagemExpiracao('retirada');
                 }
             });
         }
 
-        // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO COM TEMPORIZADOR DE 15 SEGUNDOS
+        // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO COM TEMPORIZADOR DE 10 SEGUNDOS
         function alternarMetodoDevolucao(metodo) {
             metodoDevolucaoAtual = metodo;
             const subSenha = document.getElementById('sub-bloco-dev-senha');
@@ -876,8 +911,7 @@
             const btnSenha = document.getElementById('aba-metodo-dev-senha');
             const btnRfid = document.getElementById('aba-metodo-dev-rfid');
 
-            clearInterval(timerExpiracaoDevolucao);
-            rfidLidoDevolucao = "";
+            limparEscutaRFID();
             document.getElementById('contador-rfid-devolucao').textContent = "";
 
             if (metodo === 'senha') {
@@ -890,62 +924,61 @@
                 subRfid.style.display = 'block';
                 btnRfid.style.background = '#86198f';
                 btnSenha.style.background = '#64748b';
-                
+
                 document.getElementById('input-rfid-leitura-dev').value = "Aproxime o crachá no leitor...";
+                zerarRFIDNoBanco();
                 ouvirLeitorParaDevolucao();
             }
         }
 
         function ouvirLeitorParaDevolucao() {
             rfidLidoDevolucao = "";
-            db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+            listenerDevolucaoRef = db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
                 if (metodoDevolucaoAtual !== 'rfid') return;
-                const rfid = snapshot.val();
-                if (rfid && rfid.trim() !== "") {
+                const rfid = (snapshot.val() || "").trim().toUpperCase();
+                if (rfid && rfid !== CODIGO_RFID_ZERADO) {
                     rfidLidoDevolucao = rfid;
-                    const userObj = usuarios.find(u => u.rfid === rfid);
-                    const nomeIdentificado = userObj ? userObj.nome : "Não cadastrado";
-                    document.getElementById('input-rfid-leitura-dev').value = `${nomeIdentificado} (${rfid})`;
-                    
-                    // Inicia contagem regressiva de 15 segundos para expiração de segurança
+                    document.getElementById('input-rfid-leitura-dev').value = formatarIdentificacaoRFID(rfid);
                     iniciarContagemExpiracao('devolucao');
                 }
             });
         }
 
-        // CONTAGEM REGRESSIVA DE 15 SEGUNDOS PARA EXPIRAR O RFID NA TELA
+        // CONTAGEM REGRESSIVA DE 10 SEGUNDOS E ENVIO DO CÓDIGO ZERADO
         function iniciarContagemExpiracao(tipo) {
-            let segundosRestantes = 15;
+            let segundosRestantes = 10;
             if (tipo === 'retirada') {
                 clearInterval(timerExpiracaoRetirada);
                 const elContador = document.getElementById('contador-rfid-retirada');
-                elContador.textContent = `Válido por ${segundosRestantes}s...`;
-                
+                elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
+
                 timerExpiracaoRetirada = setInterval(() => {
                     segundosRestantes--;
                     if (segundosRestantes > 0) {
-                        elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                        elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
                     } else {
                         clearInterval(timerExpiracaoRetirada);
                         rfidLidoModal = "";
-                        document.getElementById('input-rfid-leitura').value = "Tempo expirado! Aproxime o crachá novamente.";
-                        elContador.textContent = "";
+                        document.getElementById('input-rfid-leitura').value = "Aguardando crachá...";
+                        elContador.textContent = "Tempo esgotado. Código zerado no banco.";
+                        zerarRFIDNoBanco();
                     }
                 }, 1000);
             } else {
                 clearInterval(timerExpiracaoDevolucao);
                 const elContador = document.getElementById('contador-rfid-devolucao');
-                elContador.textContent = `Válido por ${segundosRestantes}s...`;
-                
+                elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
+
                 timerExpiracaoDevolucao = setInterval(() => {
                     segundosRestantes--;
                     if (segundosRestantes > 0) {
-                        elContador.textContent = `Válido por ${segundosRestantes}s...`;
+                        elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
                     } else {
                         clearInterval(timerExpiracaoDevolucao);
                         rfidLidoDevolucao = "";
-                        document.getElementById('input-rfid-leitura-dev').value = "Tempo expirado! Aproxime o crachá novamente.";
-                        elContador.textContent = "";
+                        document.getElementById('input-rfid-leitura-dev').value = "Aguardando crachá...";
+                        elContador.textContent = "Tempo esgotado. Código zerado no banco.";
+                        zerarRFIDNoBanco();
                     }
                 }, 1000);
             }
@@ -972,7 +1005,7 @@
             ambientes.forEach((amb, index) => {
                 let item = document.createElement('div');
                 item.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: white; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;";
-                
+
                 let nomeSpan = document.createElement('span');
                 nomeSpan.textContent = `${index + 1}. ${amb.nome} (${amb.exigeToken !== false ? 'Com Token' : 'Livre'})`;
                 nomeSpan.style.fontWeight = "600";
@@ -1107,7 +1140,7 @@
             tbody.innerHTML = '';
 
             let historicoFiltrado = historico.filter(h => {
-                let matchTexto = textoFiltro === "" || 
+                let matchTexto = textoFiltro === "" ||
                     (h.ambiente && h.ambiente.toLowerCase().includes(textoFiltro)) ||
                     (h.responsavel && h.responsavel.toLowerCase().includes(textoFiltro)) ||
                     (h.tipo && h.tipo.toLowerCase().includes(textoFiltro)) ||
@@ -1134,8 +1167,23 @@
                     }
 
                     let corTipo = 'var(--success)';
-                    if (h.tipo === 'Retirada' || h.tipo === 'Retirada (RFID/Senha)' || h.tipo === 'Saída da Sessão' || h.tipo === 'Liberação Master (Portaria)') corTipo = 'var(--danger)';
-                    if (h.tipo === 'Manutenção' || h.tipo === 'Co-ocupação' || h.tipo === 'Solicitação de Manutenção') corTipo = 'var(--warning)';
+                    const tipoTexto = (h.tipo || '').toLowerCase();
+
+                    if (
+                        tipoTexto.includes('co-ocupação') ||
+                        tipoTexto.includes('saída da sessão') ||
+                        tipoTexto.includes('manutenção') ||
+                        tipoTexto.includes('solicitação de manutenção')
+                    ) {
+                        corTipo = 'var(--warning)';
+                    } else if (
+                        tipoTexto.includes('retirada') ||
+                        tipoTexto.includes('devolução') ||
+                        tipoTexto.includes('saída registrada') ||
+                        tipoTexto.includes('liberação master')
+                    ) {
+                        corTipo = 'var(--danger)';
+                    }
 
                     tbody.innerHTML += `
                         <tr>
@@ -1220,7 +1268,7 @@
                 blocoDevolucao.style.display = 'none';
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'retirar') {
-                info.textContent = exigeToken 
+                info.textContent = exigeToken
                     ? "Informe seus dados, senha e token ou aproxime o seu crachá RFID."
                     : "Registre sua presença neste ambiente livre.";
                 alternarMetodoAcesso('senha');
@@ -1244,7 +1292,7 @@
 
                 const selectDev = document.getElementById('select-responsavel-devolucao');
                 selectDev.innerHTML = '';
-                
+
                 let permitidos = [];
                 if (amb.responsavel) permitidos.push(amb.responsavel);
                 if (amb.coocupantes) {
@@ -1311,7 +1359,7 @@
             if (amb.status === 'manutencao') {
                 const obsLiberacao = prompt("Observação da liberação técnica (Opcional):") || "Sem observações";
                 const dataCompleta = obterDataHoraAtual();
-                
+
                 db.ref('ambientes/' + amb.id).update({
                     status: 'disponivel',
                     responsavel: '',
@@ -1356,7 +1404,7 @@
 
         function solicitarManutencao() {
             const amb = ambientes.find(a => a.id === ambienteAtualId);
-            
+
             let solicitante = prompt("Insira o seu nome (Solicitante da Manutenção):");
             if (!solicitante || solicitante.trim() === "") return;
 
@@ -1402,10 +1450,7 @@
         }
 
         function fecharModal() {
-            clearInterval(timerExpiracaoRetirada);
-            clearInterval(timerExpiracaoDevolucao);
-            rfidLidoModal = "";
-            rfidLidoDevolucao = "";
+            limparEscutaRFID();
             document.getElementById('modal-acao').style.display = 'none';
         }
 
@@ -1434,12 +1479,12 @@
                     return;
                 }
             } else {
-                if (!rfidLidoModal) {
+                if (!rfidLidoModal || rfidLidoModal === CODIGO_RFID_ZERADO) {
                     alert('Nenhum crachá RFID válido no momento! Aproxime o crachá do leitor.');
                     return;
                 }
 
-                usuarioEncontrado = usuarios.find(u => u.rfid === rfidLidoModal);
+                usuarioEncontrado = usuarios.find(u => (u.rfid || "").trim().toUpperCase() === rfidLidoModal);
                 if (!usuarioEncontrado) {
                     alert(`Crachá RFID (${rfidLidoModal}) não cadastrado no sistema! Cadastre-o primeiro no Painel de Gestão.`);
                     return;
@@ -1456,15 +1501,15 @@
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result);
+                    salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, arquivoInput.files[0].name, e.target.result, metodoAcessoAtual);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, null, null);
+                salvarRetiradaFirebase(amb, nomeResponsavel, dataCompleta, agoraHoraMinuto, observacoes, coocupantesObj, null, null, metodoAcessoAtual);
             }
         }
 
-        function salvarRetiradaFirebase(amb, responsavel, dataCompleta, hora, obs, coocupantes, nomeArq, dadosArq) {
+        function salvarRetiradaFirebase(amb, responsavel, dataCompleta, hora, obs, coocupantes, nomeArq, dadosArq, metodoUsado) {
             db.ref('ambientes/' + amb.id).update({
                 status: 'ocupada',
                 responsavel: responsavel,
@@ -1473,18 +1518,20 @@
             });
 
             const exigeToken = amb.exigeToken !== false;
+            const tagMetodo = metodoUsado === 'rfid' ? '[RFID]' : '[Senha]';
+            const baseTipo = exigeToken ? 'Retirada' : 'Acesso Registrado';
+
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: responsavel,
-                tipo: exigeToken ? 'Retirada (RFID/Senha)' : 'Acesso Registrado',
+                tipo: `${baseTipo} ${tagMetodo}`,
                 dataHora: dataCompleta,
                 observacoes: obs || '-',
                 arquivoNome: nomeArq || null,
                 arquivoData: dadosArq || null
             });
 
-            // Limpa leitura RFID no banco e na sessão
-            db.ref('leitorPortaria/ultimoUID').set("");
+            zerarRFIDNoBanco();
             fecharModal();
         }
 
@@ -1509,7 +1556,7 @@
             db.ref('historico').push({
                 ambiente: amb.nome,
                 responsavel: nomeSelecionado,
-                tipo: 'Co-ocupação',
+                tipo: 'Co-ocupação [Senha]',
                 dataHora: dataCompleta,
                 observacoes: observacoes || 'Entrou na sessão ativa'
             });
@@ -1540,7 +1587,7 @@
 
                 let coocupantes = amb.coocupantes || {};
                 let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
-                
+
                 if (!estaNaSala) {
                     alert('Acesso negado: Este usuário não está registrado como participante ativo nesta sala!');
                     return;
@@ -1556,13 +1603,13 @@
                     }
                 }
             } else {
-                // Devolução via RFID: valida crachá dentro da janela de 15s, sem exigir token
-                if (!rfidLidoDevolucao) {
+                // Devolução via RFID: valida crachá dentro da janela de 10s, sem exigir token
+                if (!rfidLidoDevolucao || rfidLidoDevolucao === CODIGO_RFID_ZERADO) {
                     alert('Nenhum crachá RFID válido no momento! Aproxime o crachá do leitor físico no chaveiro.');
                     return;
                 }
 
-                usuarioEncontrado = usuarios.find(u => u.rfid === rfidLidoDevolucao);
+                usuarioEncontrado = usuarios.find(u => (u.rfid || "").trim().toUpperCase() === rfidLidoDevolucao);
                 if (!usuarioEncontrado) {
                     alert(`Crachá RFID (${rfidLidoDevolucao}) não cadastrado no sistema!`);
                     return;
@@ -1571,7 +1618,7 @@
 
                 let coocupantes = amb.coocupantes || {};
                 let estaNaSala = (amb.responsavel === responsavelSaindo) || Object.values(coocupantes).includes(responsavelSaindo);
-                
+
                 if (!estaNaSala) {
                     alert(`Acesso negado: O usuário ${responsavelSaindo} do crachá apresentado não está registrado nesta sala!`);
                     return;
@@ -1585,23 +1632,24 @@
             if (arquivoInput.files && arquivoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, arquivoInput.files[0].name, e.target.result);
+                    processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, arquivoInput.files[0].name, e.target.result, metodoDevolucaoAtual);
                 };
                 reader.readAsDataURL(arquivoInput.files[0]);
             } else {
-                processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, null, null);
+                processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, observacoes, coocupantes, chaveKey, null, null, metodoDevolucaoAtual);
             }
         }
 
-        function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, nomeArq, dadosArq) {
+        function processarSaidaFirebase(amb, responsavelSaindo, dataCompleta, obs, coocupantes, chaveKey, nomeArq, dadosArq, metodoUsado) {
+            const tinhaCoocupacao = (amb.coocupantes && Object.keys(amb.coocupantes).length > 1) || (amb.responsavel && amb.responsavel !== responsavelSaindo);
             delete coocupantes[chaveKey];
             let restantesKeys = Object.keys(coocupantes);
             const exigeToken = amb.exigeToken !== false;
+            const tagMetodo = metodoUsado === 'rfid' ? '[RFID]' : '[Senha]';
 
             const eraOResponsavelPrincipal = (amb.responsavel === responsavelSaindo);
 
-            // Limpa leitura RFID no banco imediatamente após uso
-            db.ref('leitorPortaria/ultimoUID').set("");
+            zerarRFIDNoBanco();
 
             if (restantesKeys.length > 0) {
                 if (eraOResponsavelPrincipal) {
@@ -1625,7 +1673,7 @@
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
-                    tipo: 'Saída da Sessão',
+                    tipo: `Saída da Sessão ${tagMetodo}`,
                     dataHora: dataCompleta,
                     observacoes: obs || 'Saiu da co-ocupação',
                     arquivoNome: nomeArq || null,
@@ -1641,10 +1689,14 @@
                     coocupantes: null
                 });
 
+                const acaoFinal = tinhaCoocupacao
+                    ? `Saída da Sessão ${tagMetodo}`
+                    : `${exigeToken ? 'Devolução' : 'Saída Registrada'} ${tagMetodo}`;
+
                 db.ref('historico').push({
                     ambiente: amb.nome,
                     responsavel: responsavelSaindo,
-                    tipo: exigeToken ? 'Devolução (RFID/Senha)' : 'Saída Registrada',
+                    tipo: acaoFinal,
                     dataHora: dataCompleta,
                     observacoes: obs || (exigeToken ? 'Chave devolvida à portaria' : 'Ambiente desocupado'),
                     arquivoNome: nomeArq || null,
@@ -1664,7 +1716,7 @@
             let conteudo = "RELATORIO DE CONTROLE DE CHAVES - SENAI SRS\n";
             conteudo += "Gerado em: " + obterDataHoraAtual() + "\n";
             conteudo += "--------------------------------------------------\n\n";
-            
+
             historico.forEach(h => {
                 conteudo += `Ambiente: ${h.ambiente}\n`;
                 conteudo += `Responsavel: ${h.responsavel}\n`;
@@ -1696,13 +1748,13 @@
 
             if (nome) {
                 let novaOrdem = ambientes.length + 1;
-                db.ref('ambientes').push({ 
-                    nome: nome, 
-                    status: 'disponivel', 
-                    responsavel: '', 
-                    hora: '', 
+                db.ref('ambientes').push({
+                    nome: nome,
+                    status: 'disponivel',
+                    responsavel: '',
+                    hora: '',
                     ordem: novaOrdem,
-                    exigeToken: exigeToken 
+                    exigeToken: exigeToken
                 });
                 document.getElementById('novo-ambiente').value = '';
                 document.getElementById('novo-exige-token').checked = true;
