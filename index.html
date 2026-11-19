@@ -521,11 +521,27 @@
 
             <!-- BLOCO DE CO-OCUPAÇÃO (ENTRAR NA SESSÃO) -->
             <div id="bloco-coocupar" style="display: none;">
-                <label style="font-size: 12px; font-weight: bold;">Seu Nome (Colaborador / Projeto):</label>
-                <select id="select-responsavel-coocupar"></select>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn" id="aba-metodo-cooc-senha" style="flex: 1; background: #005691;" onclick="alternarMetodoCoocupacao('senha')">🔑 Senha</button>
+                    <button class="btn" id="aba-metodo-cooc-rfid" style="flex: 1; background: #64748b;" onclick="alternarMetodoCoocupacao('rfid')">💳 Crachá RFID</button>
+                </div>
 
-                <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
-                <input type="password" id="input-senha-coocupar" placeholder="Senha do colaborador">
+                <!-- SUB-BLOCO CO-OCUPAÇÃO SENHA -->
+                <div id="sub-bloco-cooc-senha">
+                    <label style="font-size: 12px; font-weight: bold;">Seu Nome (Colaborador / Projeto):</label>
+                    <select id="select-responsavel-coocupar"></select>
+
+                    <label style="font-size: 12px; font-weight: bold;">Sua Senha Pessoal:</label>
+                    <input type="password" id="input-senha-coocupar" placeholder="Senha do colaborador">
+                </div>
+
+                <!-- SUB-BLOCO CO-OCUPAÇÃO RFID -->
+                <div id="sub-bloco-cooc-rfid" style="display: none; background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+                    <strong style="color: #86198f; font-size: 13px;">Aproxime seu Crachá para Co-ocupação</strong>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 10px 0;">Validação imediata sem token! Expira em 10 segundos.</p>
+                    <input type="text" id="input-rfid-leitura-cooc" placeholder="Aguardando crachá..." readonly style="background: white; text-align: center; font-weight: bold; color: #6b21a8; font-size: 14px; margin-bottom: 4px;">
+                    <div id="contador-rfid-coocupar" style="font-size: 11px; font-weight: bold; color: #d97706;"></div>
+                </div>
 
                 <label style="font-size: 12px; font-weight: bold;">Turma / Projeto / Motivo:</label>
                 <textarea id="input-obs-coocupar" placeholder="Ex: Projeto Integrador / Pesquisa IoT..."></textarea>
@@ -604,12 +620,16 @@
         let listenerRfidAtivo = false;
         let listenerCadastroRef = null;
         let listenerRetiradaRef = null;
+        let listenerCoocupacaoRef = null;
         let listenerDevolucaoRef = null;
         let metodoAcessoAtual = 'senha';
+        let metodoCoocupacaoAtual = 'senha';
         let metodoDevolucaoAtual = 'senha';
         let rfidLidoModal = "";
+        let rfidLidoCoocupacao = "";
         let rfidLidoDevolucao = "";
         let timerExpiracaoRetirada = null;
+        let timerExpiracaoCoocupacao = null;
         let timerExpiracaoDevolucao = null;
 
         function obterDataHoraAtual() {
@@ -629,13 +649,19 @@
 
         function limparEscutaRFID() {
             clearInterval(timerExpiracaoRetirada);
+            clearInterval(timerExpiracaoCoocupacao);
             clearInterval(timerExpiracaoDevolucao);
             rfidLidoModal = "";
+            rfidLidoCoocupacao = "";
             rfidLidoDevolucao = "";
 
             if (listenerRetiradaRef) {
                 db.ref('leitorPortaria/ultimoUID').off('value', listenerRetiradaRef);
                 listenerRetiradaRef = null;
+            }
+            if (listenerCoocupacaoRef) {
+                db.ref('leitorPortaria/ultimoUID').off('value', listenerCoocupacaoRef);
+                listenerCoocupacaoRef = null;
             }
             if (listenerDevolucaoRef) {
                 db.ref('leitorPortaria/ultimoUID').off('value', listenerDevolucaoRef);
@@ -903,6 +929,47 @@
             });
         }
 
+        // ALTERNÂNCIA DE MÉTODO NA CO-OCUPAÇÃO COM TEMPORIZADOR DE 10 SEGUNDOS
+        function alternarMetodoCoocupacao(metodo) {
+            metodoCoocupacaoAtual = metodo;
+            const subSenha = document.getElementById('sub-bloco-cooc-senha');
+            const subRfid = document.getElementById('sub-bloco-cooc-rfid');
+            const btnSenha = document.getElementById('aba-metodo-cooc-senha');
+            const btnRfid = document.getElementById('aba-metodo-cooc-rfid');
+
+            limparEscutaRFID();
+            document.getElementById('contador-rfid-coocupar').textContent = "";
+
+            if (metodo === 'senha') {
+                subSenha.style.display = 'block';
+                subRfid.style.display = 'none';
+                btnSenha.style.background = '#005691';
+                btnRfid.style.background = '#64748b';
+            } else {
+                subSenha.style.display = 'none';
+                subRfid.style.display = 'block';
+                btnRfid.style.background = '#86198f';
+                btnSenha.style.background = '#64748b';
+
+                document.getElementById('input-rfid-leitura-cooc').value = "Aproxime o crachá no leitor...";
+                zerarRFIDNoBanco();
+                ouvirLeitorParaCoocupacao();
+            }
+        }
+
+        function ouvirLeitorParaCoocupacao() {
+            rfidLidoCoocupacao = "";
+            listenerCoocupacaoRef = db.ref('leitorPortaria/ultimoUID').on('value', (snapshot) => {
+                if (metodoCoocupacaoAtual !== 'rfid') return;
+                const rfid = (snapshot.val() || "").trim().toUpperCase();
+                if (rfid && rfid !== CODIGO_RFID_ZERADO) {
+                    rfidLidoCoocupacao = rfid;
+                    document.getElementById('input-rfid-leitura-cooc').value = formatarIdentificacaoRFID(rfid);
+                    iniciarContagemExpiracao('coocupacao');
+                }
+            });
+        }
+
         // ALTERNÂNCIA DE MÉTODO NA DEVOLUÇÃO COM TEMPORIZADOR DE 10 SEGUNDOS
         function alternarMetodoDevolucao(metodo) {
             metodoDevolucaoAtual = metodo;
@@ -960,6 +1027,23 @@
                         clearInterval(timerExpiracaoRetirada);
                         rfidLidoModal = "";
                         document.getElementById('input-rfid-leitura').value = "Aguardando crachá...";
+                        elContador.textContent = "Tempo esgotado. Código zerado no banco.";
+                        zerarRFIDNoBanco();
+                    }
+                }, 1000);
+            } else if (tipo === 'coocupacao') {
+                clearInterval(timerExpiracaoCoocupacao);
+                const elContador = document.getElementById('contador-rfid-coocupar');
+                elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
+
+                timerExpiracaoCoocupacao = setInterval(() => {
+                    segundosRestantes--;
+                    if (segundosRestantes > 0) {
+                        elContador.textContent = `Leitura válida por ${segundosRestantes}s...`;
+                    } else {
+                        clearInterval(timerExpiracaoCoocupacao);
+                        rfidLidoCoocupacao = "";
+                        document.getElementById('input-rfid-leitura-cooc').value = "Aguardando crachá...";
                         elContador.textContent = "Tempo esgotado. Código zerado no banco.";
                         zerarRFIDNoBanco();
                     }
@@ -1166,36 +1250,28 @@
                         htmlAnexo = `<br><a class="link-arquivo" href="${h.arquivoData}" download="${h.arquivoNome}">📎 ${h.arquivoNome}</a>`;
                     }
 
-                 
+                    let corTipo = 'var(--success)';
+                    const tipoTexto = (h.tipo || '').toLowerCase();
 
-
-let corTipo = 'var(--success)';
-const tipoTexto = (h.tipo || '').toLowerCase();
-
-if (
-    tipoTexto.includes('co-ocupação') ||
-    tipoTexto.includes('saída da sessão') ||
-    tipoTexto.includes('manutenção') ||
-    tipoTexto.includes('solicitação de manutenção')
-) {
-    corTipo = 'var(--warning)'; // Laranja para co-ocupação e saída da sessão
-} else if (
-    tipoTexto.includes('devolução') ||
-    tipoTexto.includes('saída registrada') ||
-    tipoTexto.includes('liberação master')
-) {
-    corTipo = 'var(--danger)'; // Vermelho para devolução / saída
-} else if (
-    tipoTexto.includes('retirada') ||
-    tipoTexto.includes('acesso registrado')
-) {
-    corTipo = 'var(--success)'; // Verde para retirada
-}
-
-
-
-
-
+                    if (
+                        tipoTexto.includes('co-ocupação') ||
+                        tipoTexto.includes('saída da sessão') ||
+                        tipoTexto.includes('manutenção') ||
+                        tipoTexto.includes('solicitação de manutenção')
+                    ) {
+                        corTipo = 'var(--warning)';
+                    } else if (
+                        tipoTexto.includes('devolução') ||
+                        tipoTexto.includes('saída registrada') ||
+                        tipoTexto.includes('liberação master')
+                    ) {
+                        corTipo = 'var(--danger)';
+                    } else if (
+                        tipoTexto.includes('retirada') ||
+                        tipoTexto.includes('acesso registrado')
+                    ) {
+                        corTipo = 'var(--success)';
+                    }
 
                     tbody.innerHTML += `
                         <tr>
@@ -1289,7 +1365,8 @@ if (
                 blocoDevolucao.style.display = 'none';
                 blocoAdminLiberacao.style.display = 'none';
             } else if (acaoForcada === 'coocupar') {
-                info.textContent = "Adicione-se como co-ocupante desta sala/laboratório em andamento.";
+                info.textContent = "Adicione-se como co-ocupante desta sala/laboratório em andamento (via senha ou crachá RFID).";
+                alternarMetodoCoocupacao('senha');
                 blocoRetirada.style.display = 'none';
                 blocoCoocupar.style.display = 'block';
                 blocoDevolucao.style.display = 'none';
@@ -1548,33 +1625,60 @@ if (
         }
 
         function confirmarCoocupacao() {
-            const nomeSelecionado = document.getElementById('select-responsavel-coocupar').value;
-            const senhaDigitada = document.getElementById('input-senha-coocupar').value.trim();
+            const amb = ambientes.find(a => a.id === ambienteAtualId);
             const observacoes = document.getElementById('input-obs-coocupar').value.trim();
 
-            const usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
-            if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
-                alert('Senha pessoal incorreta!');
+            let usuarioEncontrado = null;
+            let nomeCoocupante = "";
+
+            if (metodoCoocupacaoAtual === 'senha') {
+                const nomeSelecionado = document.getElementById('select-responsavel-coocupar').value;
+                const senhaDigitada = document.getElementById('input-senha-coocupar').value.trim();
+
+                usuarioEncontrado = usuarios.find(u => u.nome === nomeSelecionado);
+                if (!usuarioEncontrado || usuarioEncontrado.senha !== senhaDigitada) {
+                    alert('Senha pessoal incorreta!');
+                    return;
+                }
+                nomeCoocupante = usuarioEncontrado.nome;
+            } else {
+                if (!rfidLidoCoocupacao || rfidLidoCoocupacao === CODIGO_RFID_ZERADO) {
+                    alert('Nenhum crachá RFID válido no momento! Aproxime o crachá do leitor.');
+                    return;
+                }
+
+                usuarioEncontrado = usuarios.find(u => (u.rfid || "").trim().toUpperCase() === rfidLidoCoocupacao);
+                if (!usuarioEncontrado) {
+                    alert(`Crachá RFID (${rfidLidoCoocupacao}) não cadastrado no sistema! Cadastre-o primeiro no Painel de Gestão.`);
+                    return;
+                }
+                nomeCoocupante = usuarioEncontrado.nome;
+            }
+
+            let coocupantes = amb.coocupantes || {};
+            let jaParticipa = (amb.responsavel === nomeCoocupante) || Object.values(coocupantes).includes(nomeCoocupante);
+            if (jaParticipa) {
+                alert(`${nomeCoocupante} já está registrado como participante ativo neste ambiente!`);
                 return;
             }
 
-            const amb = ambientes.find(a => a.id === ambienteAtualId);
-            let coocupantes = amb.coocupantes || {};
-            coocupantes[nomeSelecionado.replace(/[^a-zA-Z0-9]/g, '_')] = nomeSelecionado;
+            coocupantes[nomeCoocupante.replace(/[^a-zA-Z0-9]/g, '_')] = nomeCoocupante;
 
             db.ref('ambientes/' + amb.id).update({ coocupantes: coocupantes });
 
+            const tagMetodo = metodoCoocupacaoAtual === 'rfid' ? '[RFID]' : '[Senha]';
             const dataCompleta = obterDataHoraAtual();
             db.ref('historico').push({
                 ambiente: amb.nome,
-                responsavel: nomeSelecionado,
-                tipo: 'Co-ocupação [Senha]',
+                responsavel: nomeCoocupante,
+                tipo: `Co-ocupação ${tagMetodo}`,
                 dataHora: dataCompleta,
                 observacoes: observacoes || 'Entrou na sessão ativa'
             });
 
+            zerarRFIDNoBanco();
             fecharModal();
-            alert(`Colaborador ${nomeSelecionado} adicionado com sucesso à sessão!`);
+            alert(`Colaborador ${nomeCoocupante} adicionado com sucesso à sessão!`);
         }
 
         function confirmarDevolucao() {
